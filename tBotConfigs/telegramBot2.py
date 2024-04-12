@@ -281,17 +281,17 @@ async def process_video_link(video_link: str, user_id: int, sender_username: str
     video_id = generate_random_hex(24)
     
     video_info = {
-        "videoName": os.path.basename(video_path),
+        "filename": os.path.basename(video_path),
         "fileLocalPath": f"../uploads/{video_id}",
         "file_size": os.path.getsize(video_path),
         "duration": 0,  # Update with actual duration if available
         "mime_type": "video/mp4",  # Update with actual MIME type if available
-        "fileUniqueId": video_id,
+        "uniqueLink": video_id,
         "relatedUser": user_id,
         "userName": sender_username or "",
     }
     video_collection.insert_one(video_info)
-    video_url = f"http://nutcracker.live/video/{video_id}"
+    video_url = f"http://nutcracker.live/play/{video_id}"
     return video_url
 
 async def process_site_link(bot, message, video_id):
