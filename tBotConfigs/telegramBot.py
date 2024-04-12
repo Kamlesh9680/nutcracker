@@ -3,7 +3,7 @@ import random
 import string
 import re
 import asyncio
-# import uvloop
+import uvloop
 from pyrogram import Client, filters 
 import tgcrypto
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
