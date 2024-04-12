@@ -100,7 +100,7 @@ async def handle_video(bot, message: Message):
                 "file_size": message.video.file_size,
                 "duration": message.video.duration,
                 "mime_type": message.video.mime_type,
-                "fileUniqueId": videoId,
+                "uniqueLink": videoId,
                 "relatedUser": user_id,
                 "userName": message.from_user.username or "",
                 "viewCount": 0,
