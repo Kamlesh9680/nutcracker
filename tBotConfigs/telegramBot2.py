@@ -44,7 +44,7 @@ def generate_random_hex(length):
 
 
 # Function to download and store video
-def download_and_store_video(video_url, folder="../public/uploads/"):
+def download_and_store_video(video_url, folder="../uploads/"):
     filename = generate_random_filename() + ".mp4"
     filepath = os.path.join(folder, filename)
 
@@ -282,7 +282,7 @@ async def process_video_link(video_link: str, user_id: int, sender_username: str
     
     video_info = {
         "videoName": os.path.basename(video_path),
-        "fileLocalPath": f"/public/uploads/{video_id}",
+        "fileLocalPath": f"../uploads/{video_id}",
         "file_size": os.path.getsize(video_path),
         "duration": 0,  # Update with actual duration if available
         "mime_type": "video/mp4",  # Update with actual MIME type if available
