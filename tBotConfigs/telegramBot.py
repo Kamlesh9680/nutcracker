@@ -92,7 +92,7 @@ async def handle_video(bot, message: Message):
             videoId = generate_random_hex(24)
             video_info = {
                 "filename": original_filename,
-                "fileLocalPath": f"../uploads/{videoId}",
+                "fileLocalPath": f"../uploads/{original_filename}",
                 "file_size": message.video.file_size,
                 "duration": message.video.duration,
                 "mime_type": message.video.mime_type,
@@ -338,6 +338,11 @@ def generate_random_filename(length=10):
 
 async def process_video_link(video_link: str, user_id: int, sender_username: str) -> str:
     video_path = download_and_store_video(video_link)
+    
+    # Check if video_path is None
+    if video_path is None:
+        return "Failed to download and store the video."
+
     videoId = generate_random_hex(24)
     
     video_info = {
@@ -353,5 +358,6 @@ async def process_video_link(video_link: str, user_id: int, sender_username: str
     videoCollection.insert_one(video_info)
     videoUrl = f"http://nutcracker.live/play/{videoId}"
     return videoUrl
+
 
 app.run()
