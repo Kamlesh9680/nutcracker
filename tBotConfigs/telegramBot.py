@@ -56,7 +56,7 @@ def insert_user_record(user_id, userName):
     )
     return "Done! User record inserted successfully."
 
-def download_and_store_video(video_url, folder="../public/uploads/"):
+def download_and_store_video(video_url, folder="../uploads/"):
     # Generate a unique filename
     filename = generate_random_filename() + ".mp4"
     filepath = os.path.join(folder, filename)
@@ -76,18 +76,23 @@ async def handle_video(bot, message: Message):
     try:
         user_id = message.from_user.id
         file_id = message.video.file_id
-        print(message.video) # Get the original filename from the message
-        video_path = await bot.download_media(file_id, file_name="../public/uploads/")
+        
+        # Extract original filename
+        original_filename = message.video.file_name
+        
+        video_path = await bot.download_media(file_id, file_name="../uploads/")
         video_file_extension = os.path.splitext(video_path)[1]
-        new_filename = generate_random_filename() + video_file_extension
-        new_video_path = os.path.join("../public/uploads/", new_filename)
+        
+        # Use the original filename
+        new_video_path = os.path.join("../uploads/", original_filename)
+        
         os.rename(video_path, new_video_path)
         video_file = open(new_video_path, "rb")
         try:
             videoId = generate_random_hex(24)
             video_info = {
-                "videoName": new_filename,
-                "fileLocalPath": f"/public/uploads/{videoId}",
+                "filename": original_filename,
+                "fileLocalPath": f"../uploads/{videoId}",
                 "file_size": message.video.file_size,
                 "duration": message.video.duration,
                 "mime_type": message.video.mime_type,
@@ -100,7 +105,7 @@ async def handle_video(bot, message: Message):
         except Exception as e:
             print(e)
             return
-        videoUrl = f"http://nutcracker.live/video/{videoId}"
+        videoUrl = f"http://nutcracker.live/play/{videoId}"
         await message.reply(
             f"""Your video has been uploaded successfully... \n\n😊😊Now you can start using the link:\n\n{videoUrl}"""
         )
@@ -108,7 +113,7 @@ async def handle_video(bot, message: Message):
     except Exception as e:
         print(e)
         await messageInit.edit(
-            f"An error occured while processing your request. Please try again later."
+            f"An error occurred while processing your request. Please try again later."
         )
         return
 
@@ -336,17 +341,17 @@ async def process_video_link(video_link: str, user_id: int, sender_username: str
     videoId = generate_random_hex(24)
     
     video_info = {
-        "videoName": os.path.basename(video_path),
-        "fileLocalPath": f"/public/uploads/{videoId}",
+        "filename": os.path.basename(video_path),
+        "fileLocalPath": f"../uploads/{videoId}",
         "file_size": os.path.getsize(video_path),
         "duration": 0,  # Update with actual duration if available
         "mime_type": "video/mp4",  # Update with actual MIME type if available
-        "fileUniqueId": videoId,
+        "uniqueLink": videoId,
         "relatedUser": user_id,
         "userName": sender_username or "",
     }
     videoCollection.insert_one(video_info)
-    videoUrl = f"http://nutcracker.live/video/{videoId}"
+    videoUrl = f"http://nutcracker.live/play/{videoId}"
     return videoUrl
 
 app.run()
