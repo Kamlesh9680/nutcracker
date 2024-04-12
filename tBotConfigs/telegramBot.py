@@ -77,22 +77,26 @@ async def handle_video(bot, message: Message):
         user_id = message.from_user.id
         file_id = message.video.file_id
         
-        # Extract original filename
+        # Extract original filename if available
         original_filename = message.video.file_name
         
         video_path = await bot.download_media(file_id, file_name="../uploads/")
         video_file_extension = os.path.splitext(video_path)[1]
         
-        # Use the original filename
-        new_video_path = os.path.join("../uploads/", original_filename)
+        # Use the original filename if available, otherwise assign a default filename
+        if original_filename:
+            new_video_path = os.path.join("../uploads/", original_filename)
+        else:
+            # Assign a default filename
+            new_video_path = os.path.join("../uploads/", "video.mp4")
         
         os.rename(video_path, new_video_path)
         video_file = open(new_video_path, "rb")
         try:
             videoId = generate_random_hex(24)
             video_info = {
-                "filename": original_filename,
-                "fileLocalPath": f"../uploads/{original_filename}",
+                "filename": original_filename or "video.mp4",  # Use original filename if available, otherwise use default
+                "fileLocalPath": f"../uploads/{original_filename or 'video.mp4'}",  # Use original filename if available, otherwise use default
                 "file_size": message.video.file_size,
                 "duration": message.video.duration,
                 "mime_type": message.video.mime_type,
