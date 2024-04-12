@@ -15,6 +15,8 @@ import pymongo
 from pymongo import MongoClient
 import datetime
 import secrets
+from urllib.parse import urlparse
+
 
 # Load environment variables
 load_dotenv()
@@ -43,9 +45,11 @@ def generate_random_hex(length):
     return random_hex
 
 
-# Function to download and store video
+
 def download_and_store_video(video_url, folder="../uploads/"):
-    filename = generate_random_filename() + ".mp4"
+    parsed_url = urlparse(video_url)
+    filename = os.path.basename(parsed_url.path)
+
     filepath = os.path.join(folder, filename)
 
     with requests.get(video_url, stream=True) as r:
@@ -54,7 +58,6 @@ def download_and_store_video(video_url, folder="../uploads/"):
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
     return filepath
-
 
 # Command handler for /convertsitelink
 @app.on_message(filters.command("convertsitelink"))
