@@ -9,7 +9,7 @@ import uvloop
 import asyncio
 import requests
 from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from dotenv import load_dotenv
 import pymongo
 from pymongo import MongoClient
