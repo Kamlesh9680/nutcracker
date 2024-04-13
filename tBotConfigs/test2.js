@@ -398,7 +398,7 @@ async function handleVideoLinks(ctx, messageText = '') {
         console.log('Modified Message:', modifiedMessage); // Log the modified message
 
         // Search for the video ID in the videosRecord collection
-        const videoRecord = await videosRecordCollection.findOne({ fileUniqueId: videoId });
+        const videoRecord = await videosRecordCollection.findOne({ uniqueLink: videoId });
 
         console.log('Video Record:', videoRecord); // Log the video record
 
@@ -411,7 +411,7 @@ async function handleVideoLinks(ctx, messageText = '') {
             // Create a new video record with updated fields
             const newVideoRecord = {
                 ...videoRecord,
-                fileUniqueId: newVideoId,
+                uniqueLink: newVideoId,
                 relatedUser: ctx.from.id, // Set the related user to the user who sent the message
                 convertedFrom: videoId // Store the original videoId from the message
             };
