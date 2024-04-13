@@ -7,6 +7,7 @@
     <title>Video Player - NutCracker</title>
     <link rel="stylesheet" href="/assets/style.css">
     <link rel="stylesheet" href="/assets/responsive.css">
+    <link href="https://vjs.zencdn.net/7.14.3/video-js.css" rel="stylesheet">
 </head>
 
 <body>
@@ -27,9 +28,11 @@
         </header>
         <main class="play">
             <div class="video-container">
-                <video controls width="760" height="400">
-                    <source src="/uploads/<%= filename %>" type="video/mp4">
-                    Your browser does not support the video tag.
+                <video id="my-video" class="video-js vjs-default-skin" controls width="760" height="400">
+                    <p class="vjs-no-js">
+                        To view this video please enable JavaScript, and consider upgrading to a web browser that
+                        <a href="https://videojs.com/html5-video-support/" target="_blank" rel="noopener">supports HTML5 video</a>
+                    </p>
                 </video>
             </div>
 
@@ -50,6 +53,20 @@
         </footer>
     </div>
 
+
+    <script src="https://vjs.zencdn.net/7.14.3/video.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Video.js player
+            var player = videojs('my-video');
+            // Set the video source dynamically using EJS
+            var source = {
+                src: '/uploads/<%= filename %>',
+                type: 'video/mp4'
+            };
+            player.src(source);
+        });
+    </script>
 </body>
 
 </html>
