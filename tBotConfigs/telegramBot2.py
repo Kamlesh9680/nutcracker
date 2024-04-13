@@ -173,7 +173,7 @@ async def start_command(bot, message):
 
 
 # Command handler for /getmyuserid
-@app.on_message(filters.command("getmyid"))
+@app.on_message(filters.command("getmyuserid"))
 async def get_user_id(bot, message):
     user_id = message.from_user.id
     await bot.send_message(
