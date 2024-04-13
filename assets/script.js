@@ -1,5 +1,8 @@
 document.querySelector('form').addEventListener('submit', async function (event) {
     event.preventDefault();
+    
+    const submitButton = document.getElementById('submitButton');
+    submitButton.innerText = 'Uploading...';
 
     const formData = new FormData(this);
 
@@ -13,16 +16,18 @@ document.querySelector('form').addEventListener('submit', async function (event)
             // Handle JSON response
             const data = await response.json();
             // Update the paragraph element with the unique link
-            document.getElementById('uploadStatus').textContent = `https://nutcracker.live/tmp/${data.link}`;
+            document.getElementById('links').textContent = `https://nutcracker.live/tmp/${data.link}`;
         } else {
             // Handle plain text response
             const data = await response.text();
             // Display the plain text response
-            document.getElementById('uploadStatus').textContent = data;
+            document.getElementById('links').textContent = data;
         }
     } catch (error) {
         console.error('Error:', error);
         console.log('Error:', error);
         // Handle errors
+    }finally {
+        submitButton.innerText = 'Upload'; 
     }
 });
