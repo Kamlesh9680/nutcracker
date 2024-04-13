@@ -122,38 +122,38 @@ async def convert_site_link_command_handler(bot, message):
 
 
 # Command handler for /titlerename
-@app.on_message(filters.command("titlerename"))
-async def title_rename(bot, message):
-    if message.text == "/titlerename":
-        await bot.send_message(
-            message.chat.id, "Please enter the video ID (fileUniqueId):"
-        )
-        return
+# @app.on_message(filters.command("titlerename"))
+# async def title_rename(bot, message):
+#     if message.text == "/titlerename":
+#         await bot.send_message(
+#             message.chat.id, "Please enter the video ID (fileUniqueId):"
+#         )
+#         return
 
-    args = message.text.split(maxsplit=1)
-    if len(args) < 2:
-        await bot.send_message(
-            message.chat.id, "Please provide the video ID along with the new title."
-        )
-        return
+#     args = message.text.split(maxsplit=1)
+#     if len(args) < 2:
+#         await bot.send_message(
+#             message.chat.id, "Please provide the video ID along with the new title."
+#         )
+#         return
 
-    video_id, new_title = args[1].split(maxsplit=1)
+#     video_id, new_title = args[1].split(maxsplit=1)
 
-    video_info = video_collection.find_one({"fileUniqueId": video_id})
-    if video_info is None:
-        await bot.send_message(
-            message.chat.id, "No video found with the provided video ID."
-        )
-        return
+#     video_info = video_collection.find_one({"fileUniqueId": video_id})
+#     if video_info is None:
+#         await bot.send_message(
+#             message.chat.id, "No video found with the provided video ID."
+#         )
+#         return
 
-    video_collection.update_one(
-        {"fileUniqueId": video_id}, {"$set": {"videoName": new_title}}
-    )
+#     video_collection.update_one(
+#         {"fileUniqueId": video_id}, {"$set": {"videoName": new_title}}
+#     )
 
-    await bot.send_message(
-        message.chat.id,
-        f"The title of the video with ID '{video_id}' has been updated to '{new_title}'.",
-    )
+#     await bot.send_message(
+#         message.chat.id,
+#         f"The title of the video with ID '{video_id}' has been updated to '{new_title}'.",
+#     )
 
 
 # Command handler for /start
@@ -163,7 +163,7 @@ async def start_command(bot, message):
     userName = message.from_user.username or ""
     user_record = user_collection.find_one({"userId": user_id})
     if user_record:
-        await bot.send_message(message.chat.id, f"Welcome back, {userName}! Upload, Share and Earn.")
+        await bot.send_message(message.chat.id, f"Welcome back, {userName} Upload, Share and Earn.")
     else:
         insert_user_record(user_id, userName)
         await bot.send_message(
@@ -173,7 +173,7 @@ async def start_command(bot, message):
 
 
 # Command handler for /getmyuserid
-@app.on_message(filters.command("getmyuserid"))
+@app.on_message(filters.command("getmyid"))
 async def get_user_id(bot, message):
     user_id = message.from_user.id
     await bot.send_message(
@@ -333,49 +333,49 @@ async def load_session_data(user_id):
 
 
 # Async function to process video link
-async def process_video_link(video_link: str, user_id: int, sender_username: str) -> str:
-    # Check if the video link is from terabox
-    if "terabox" not in video_link:
-        return "Only terabox links are supported."
+# async def process_video_link(video_link: str, user_id: int, sender_username: str) -> str:
+#     # Check if the video link is from terabox
+#     if "terabox" not in video_link:
+#         return "Only terabox links are supported."
 
-    try:
-        # Attempt to request the video link headers to check if the video is playable
-        response = requests.head(video_link, allow_redirects=True)
-        content_type = response.headers.get("content-type")
+#     try:
+#         # Attempt to request the video link headers to check if the video is playable
+#         response = requests.head(video_link, allow_redirects=True)
+#         content_type = response.headers.get("content-type")
         
-        # Check if the content type is video
-        if content_type and "video" in content_type:
-            # Download and store the video
-            video_path = download_and_store_video(video_link)
+#         # Check if the content type is video
+#         if content_type and "video" in content_type:
+#             # Download and store the video
+#             video_path = download_and_store_video(video_link)
             
-            # Check if video_path is None
-            if video_path is None:
-                return "Failed to download and store the video."
+#             # Check if video_path is None
+#             if video_path is None:
+#                 return "Failed to download and store the video."
             
-            # Generate unique ID for the video
-            videoId = generate_random_hex(24)
+#             # Generate unique ID for the video
+#             videoId = generate_random_hex(24)
             
-            # Prepare video info to store in the database
-            video_info = {
-                "filename": os.path.basename(video_path),
-                "fileLocalPath": f"../uploads/{videoId}",
-                "file_size": os.path.getsize(video_path),
-                "duration": 0,  # Update with actual duration if available
-                "mime_type": "video/mp4",  # Update with actual MIME type if available
-                "uniqueLink": videoId,
-                "relatedUser": user_id,
-                "userName": sender_username or "",
-            }
-            videoCollection.insert_one(video_info)
+#             # Prepare video info to store in the database
+#             video_info = {
+#                 "filename": os.path.basename(video_path),
+#                 "fileLocalPath": f"../uploads/{videoId}",
+#                 "file_size": os.path.getsize(video_path),
+#                 "duration": 0,  # Update with actual duration if available
+#                 "mime_type": "video/mp4",  # Update with actual MIME type if available
+#                 "uniqueLink": videoId,
+#                 "relatedUser": user_id,
+#                 "userName": sender_username or "",
+#             }
+#             videoCollection.insert_one(video_info)
             
-            # Generate URL for the uploaded video
-            videoUrl = f"http://nutcracker.live/play/{videoId}"
-            return videoUrl
-        else:
-            return "The provided link does not point to a playable video."
-    except Exception as e:
-        print(e)
-        return "An error occurred while processing the video link."
+#             # Generate URL for the uploaded video
+#             videoUrl = f"http://nutcracker.live/play/{videoId}"
+#             return videoUrl
+#         else:
+#             return "The provided link does not point to a playable video."
+#     except Exception as e:
+#         print(e)
+#         return "An error occurred while processing the video link."
 
 
 async def process_site_link(bot, message, video_id):
@@ -410,7 +410,7 @@ async def process_site_link(bot, message, video_id):
 
             # Inform the user about the successful conversion and provide the unique link
             await bot.send_message(
-                message.chat.id, f"Video converted successfully! You can play it using the following link:\n{unique_link}"
+                message.chat.id, f"Video converted successfully!\nYou can play it using the following link:\n\n{unique_link}"
             )
         else:
             await message.reply("The source video file does not exist.")
