@@ -95,7 +95,7 @@ async def handle_video(bot, message: Message):
                 "userName": message.from_user.username or "",
                 "viewCount": 0,
             }
-            videoCollection.insert_one(video_info)
+            video_collection.insert_one(video_info)
         except Exception as e:
             print(e)
             return
