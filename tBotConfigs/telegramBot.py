@@ -341,27 +341,49 @@ def generate_random_filename(length=10):
     return ''.join(random.choice(letters) for _ in range(length))
 
 async def process_video_link(video_link: str, user_id: int, sender_username: str) -> str:
-    video_path = download_and_store_video(video_link)
-    
-    # Check if video_path is None
-    if video_path is None:
-        return "Failed to download and store the video."
+    # Check if the video link is from terabox
+    if "terabox" not in video_link:
+        return "Only terabox links are supported."
 
-    videoId = generate_random_hex(24)
-    
-    video_info = {
-        "filename": os.path.basename(video_path),
-        "fileLocalPath": f"../uploads/{videoId}",
-        "file_size": os.path.getsize(video_path),
-        "duration": 0,  # Update with actual duration if available
-        "mime_type": "video/mp4",  # Update with actual MIME type if available
-        "uniqueLink": videoId,
-        "relatedUser": user_id,
-        "userName": sender_username or "",
-    }
-    videoCollection.insert_one(video_info)
-    videoUrl = f"http://nutcracker.live/play/{videoId}"
-    return videoUrl
+    try:
+        # Attempt to request the video link headers to check if the video is playable
+        response = requests.head(video_link, allow_redirects=True)
+        content_type = response.headers.get("content-type")
+        
+        # Check if the content type is video
+        if content_type and "video" in content_type:
+            # Download and store the video
+            video_path = download_and_store_video(video_link)
+            
+            # Check if video_path is None
+            if video_path is None:
+                return "Failed to download and store the video."
+            
+            # Generate unique ID for the video
+            videoId = generate_random_hex(24)
+            
+            # Prepare video info to store in the database
+            video_info = {
+                "filename": os.path.basename(video_path),
+                "fileLocalPath": f"../uploads/{videoId}",
+                "file_size": os.path.getsize(video_path),
+                "duration": 0,  # Update with actual duration if available
+                "mime_type": "video/mp4",  # Update with actual MIME type if available
+                "uniqueLink": videoId,
+                "relatedUser": user_id,
+                "userName": sender_username or "",
+            }
+            videoCollection.insert_one(video_info)
+            
+            # Generate URL for the uploaded video
+            videoUrl = f"http://nutcracker.live/play/{videoId}"
+            return videoUrl
+        else:
+            return "The provided link does not point to a playable video."
+    except Exception as e:
+        print(e)
+        return "An error occurred while processing the video link."
+
 
 
 app.run()
