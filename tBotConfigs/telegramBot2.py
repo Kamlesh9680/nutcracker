@@ -276,11 +276,11 @@ async def text_middleware(bot, message):
         video_id = video_link.split('/')[-1]
         await process_site_link(bot, message, video_id)
         await save_session_data(user_id, {})
-
-    elif session_data.get("delete_link", False):
-        await delete_video_link(bot, message, video_id)
-        app.should_process_message = False
     
+    elif session_data.get("delete_link", False):
+        # Handle delete link logic
+        await delete_video_link(bot, message, video_id)
+        await save_session_data(user_id, {})
     
     else:
         user_id = message.from_user.id
