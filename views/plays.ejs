@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Preview Video</title>
     <link rel="stylesheet" href="/assets/style.css">
-
+    <link rel="stylesheet" href="/assets/responsive.css">
+    <link href="https://vjs.zencdn.net/7.14.3/video-js.css" rel="stylesheet">
 </head>
 
 <body>
@@ -28,9 +29,12 @@
         <main class="plays">
             <div class="wrapper">
                 <div class="video-container">
-                    <video>
-                        <source src="" type="video/mp4">
-                        Your browser does not support the video tag.
+                    <video id="my-video" class="video-js vjs-default-skin" width="580" height="300">
+                        <p class="vjs-no-js">
+                            To view this video please enable JavaScript, and consider upgrading to a web browser that
+                            <a href="https://videojs.com/html5-video-support/" target="_blank" rel="noopener">supports
+                                HTML5 video</a>
+                        </p>
                     </video>
                 </div>
                 <div class="btncontainer">
@@ -50,20 +54,25 @@
         </footer>
     </div>
 
+
+    <script src="https://vjs.zencdn.net/7.14.3/video.js"></script>
     <script>
-        // Get the unique link from the URL
-        const pathArray = window.location.pathname.split('/');
-        const uniqueLink = pathArray[pathArray.length - 1];
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize Video.js player
+            var player = videojs('my-video');
+            // Set the video source dynamically using EJS
+            var source = {
+                src: '/uploads/<%= filename %>',
+                type: 'video/mp4'
+            };
+            player.src(source);
+        });
 
-        // Set the video source based on the unique link
-        const videoElement = document.querySelector('video');
-        videoElement.src = `/play/${uniqueLink}`;
-
-        // Function to redirect to the original video play page
-        function redirectToOriginalVideo() {
-            window.location.href = `/play/${uniqueLink}`;
+        function redirectToOriginalVideo(){
+            window.location.href = '/play/<%= uniqueLink %>';
         }
     </script>
+
 </body>
 
 </html>

@@ -4,8 +4,10 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const bodyParser = require('body-parser');
+const axios = require('axios');
 const { MongoClient } = require('mongodb');
 const ejs = require('ejs');
+const cron = require('node-cron');
 
 let withdrawalRequests = [];
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://kamleshSoni:TLbtEzobixLJc3wi@nutcracker.hrrsybj.mongodb.net/?retryWrites=true&w=majority&appName=nutCracker';
@@ -14,6 +16,7 @@ const client = new MongoClient(MONGO_URI, { useUnifiedTopology: true });
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.use('/assets', express.static('assets'));
 app.use('/assets/images', express.static('images'));
@@ -46,11 +49,12 @@ const videoSchema = new mongoose.Schema({
 const playbackSchema = new mongoose.Schema({
     uniqueLink: String,
     filename: String,
-    // Add any additional fields you need for video playback
+    viewCount: { type: Number, default: 0 },
+    relatedUser: { type: Number }
 });
 
-const Video = mongoose.model('Video', videoSchema, 'tmpRecord'); 
-const PlaybackVideo = mongoose.model('PlaybackVideo', playbackSchema, 'videosRecord'); 
+const Video = mongoose.model('Video', videoSchema, 'tmpRecord');
+const PlaybackVideo = mongoose.model('PlaybackVideo', playbackSchema, 'videosRecord');
 
 
 // Multer configuration for file uploads
@@ -89,6 +93,7 @@ app.post('/upload', upload.single('video'), async (req, res) => {
         res.status(500).send('Internal server error.');
     }
 });
+
 
 // Serve videos based on unique link
 // app.get('/play/:uniqueLink', async (req, res) => {
@@ -131,19 +136,114 @@ app.get('/play/:uniqueLink', async (req, res) => {
     try {
         const uniqueLink = req.params.uniqueLink;
         // Find the video based on unique link from MongoDB
+        const updatedVideo = await PlaybackVideo.findOneAndUpdate(
+            { uniqueLink },
+            { $inc: { viewCount: 1 } }, // Increment viewCount by 1
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedVideo) {
+            return res.status(404).send('Video not found');
+        }
+
+        // console.log('Updated Video:', updatedVideo); // Log the updated video object
+        // console.log('Related User:', updatedVideo.relatedUser); // Log the related user ID
+
+        // Update totalViews for relatedUser in userRecord collection
+        await updateUserTotalViews(updatedVideo.relatedUser);
+
+        // console.log(`View count updated for video with unique link ${uniqueLink}`);
+
+        // Render the HTML page with video filename and additional text content
+        res.render('video_page', { filename: updatedVideo.filename, relatedUser: updatedVideo.relatedUser });
+    } catch (error) {
+        console.error('Error updating view count:', error);
+        res.status(500).send('Internal server error.');
+    }
+});
+
+
+async function updateUserTotalViews(userId) {
+    // console.log('Updating totalViews and totalEarnings for user:', userId);
+    const db = client.db("nutCracker");
+    const userCollection = db.collection("userRecord");
+
+    // Increment totalViews for the user
+    const result = await userCollection.findOneAndUpdate(
+        { userId: userId },
+        { $inc: { totalViews: 1 } },
+        { returnOriginal: false }
+    );
+
+    // console.log('Update result:', result);
+
+    const eviews = await userCollection.findOne({ userId });
+    // console.log("eviews:", eviews);
+
+    // Calculate earnings based on views (0.6$ per 1000 views)
+    const earningsPerView = 0.6 / 1000;
+    const totalEarnings = earningsPerView * eviews.totalViews;
+    // Update totalEarnings for the user
+    const updateResult = await userCollection.updateOne(
+        { userId: userId },
+        { $set: { totalEarnings } }
+    );
+    // console.log('Update totalEarnings result:', updateResult);
+    // console.log(`Total earnings updated for user ${userId}: ${totalEarnings}`);
+}
+
+async function updateCurrentEarningsWithDelay() {
+    // Schedule a task to update currentEarnings every two days
+    cron.schedule(
+        '0 0 */2 * *',
+        async () => {
+            // Fetch all user records from the database
+            const db = client.db("nutCracker");
+            const userCollection = db.collection("userRecord");
+            const users = await userCollection.find().toArray();
+
+            // Iterate over each user record
+            for (const user of users) {
+                const { userId, totalEarnings } = user;
+                
+                // Update currentEarnings for the user
+                await userCollection.updateOne(
+                    { userId: userId },
+                    { $set: { currentEarnings: totalEarnings } }
+                );
+                // console.log(`Updated currentEarnings for user ${userId} to ${totalEarnings} with a delay of two days`);
+            }
+        },
+        { scheduled: true }
+    );
+}
+
+
+
+// Call the function to start updating currentEarnings with a delay of two days
+updateCurrentEarningsWithDelay();
+
+// In your server.js file
+
+app.get('/plays/:uniqueLink', async (req, res) => {
+    try {
+        const uniqueLink = req.params.uniqueLink;
+        // Find the video based on unique link from MongoDB
         const video = await PlaybackVideo.findOne({ uniqueLink });
 
         if (!video) {
             return res.status(404).send('Video not found');
         }
 
-        // Render the HTML page with video filename and additional text content
-        res.render('video_page', { filename: video.filename });
+        // Render the HTML page with video filename
+        res.render('plays', { filename: video.filename, uniqueLink: uniqueLink });
     } catch (error) {
-        console.error(error);
+        console.error('Error rendering plays page:', error);
         res.status(500).send('Internal server error.');
     }
 });
+
+
 
 // Serve static files from 'uploads' directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -155,7 +255,7 @@ async function getBankDetails(userId) {
     const db = client.db("nutCracker");
     const userCollection = db.collection("bankRecord");
     const userRecord = await userCollection.findOne({ userId });
-    
+
     if (userRecord && userRecord.bankDetails) {
         return userRecord.bankDetails;
     } else {
@@ -209,6 +309,9 @@ app.get('/about', (req, res) => {
 
 app.get('/upload', (req, res) => {
     res.sendFile(path.join(__dirname + '/views/upload.html'));
+});
+app.get('/downloads', (req, res) => {
+    res.sendFile(path.join(__dirname + '/views/downloads.html'));
 });
 
 app.get('/terms', (req, res) => {
