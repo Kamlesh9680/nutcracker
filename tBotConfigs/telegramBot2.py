@@ -378,7 +378,7 @@ async def load_session_data(user_id):
 #         return "An error occurred while processing the video link."
 
 
-async def process_site_link(bot, message, video_id):
+async def process_site_link(bot, message, video_id, user_id):
     try:
         # Search for the video ID in the 'tmpRecord' collection
         tmp_record = tmp_record_collection.find_one({"uniqueLink": video_id})
