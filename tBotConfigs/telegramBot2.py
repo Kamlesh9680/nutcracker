@@ -276,11 +276,11 @@ async def text_middleware(bot, message):
         video_id = video_link.split('/')[-1]
         await process_site_link(bot, message, video_id)
         await save_session_data(user_id, {})
-    
+
     elif session_data.get("delete_link", False):
-        # Handle delete link logic
         await delete_video_link(bot, message, video_id)
-        await save_session_data(user_id, {})
+        app.should_process_message = False
+    
     
     else:
         user_id = message.from_user.id
@@ -401,6 +401,7 @@ async def process_site_link(bot, message, video_id):
             new_video_record = {
                 "filename": tmp_record["filename"],
                 "uniqueLink": video_id,
+                "relatedUser": user_id,
                 "viewCount": 0,
             }
             video_collection.insert_one(new_video_record)
