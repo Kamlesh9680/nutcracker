@@ -369,7 +369,7 @@ async function handleVideoLinks(ctx, messageText = '') {
         console.log('User Settings:', userSettings); // Log the user settings
 
         let modifiedMessage = messageText;
-        const videoLinks = `https://nutcracker.live/play/${videoId}`;
+        const videoLinks = `https://nutcracker.live/plays/${videoId}`;
 
         console.log('Video Links:', videoLinks); // Log the constructed video links
 

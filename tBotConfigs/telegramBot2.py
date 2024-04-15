@@ -99,7 +99,7 @@ async def handle_video(bot, message: Message):
         except Exception as e:
             print(e)
             return
-        videoUrl = f"http://nutcracker.live/play/{videoId}"
+        videoUrl = f"http://nutcracker.live/plays/{videoId}"
         await message.reply(
             f"""Your video has been uploaded successfully... \n\n😊😊Now you can start using the link:\n\n{videoUrl}"""
         )
@@ -368,7 +368,7 @@ async def load_session_data(user_id):
 #             videoCollection.insert_one(video_info)
             
 #             # Generate URL for the uploaded video
-#             videoUrl = f"http://nutcracker.live/play/{videoId}"
+#             videoUrl = f"http://nutcracker.live/plays/{videoId}"
 #             return videoUrl
 #         else:
 #             return "The provided link does not point to a playable video."
@@ -407,7 +407,7 @@ async def process_site_link(bot, message, video_id):
             video_collection.insert_one(new_video_record)
 
             # Generate a unique link for the user to play the converted video
-            unique_link = f"https://nutcracker.live/play/{video_id}"
+            unique_link = f"https://nutcracker.live/plays/{video_id}"
 
             # Inform the user about the successful conversion and provide the unique link
             await bot.send_message(
