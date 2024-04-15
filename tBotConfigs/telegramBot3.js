@@ -153,7 +153,7 @@ editBankDetailsScene.on('text', async (ctx) => {
         const success = await saveBankDetails(ctx.message.from.id, bankDetails);
 
         if (success) {
-            await ctx.reply('Bank account details added/updated successfully.');
+            await ctx.reply('Bank account updated successfully.');
         } else {
             await ctx.reply('Failed to update bank account details. Please try again later.');
         }
