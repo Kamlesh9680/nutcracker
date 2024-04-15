@@ -167,12 +167,18 @@ async function saveBankDetails(userId, bankDetails) {
     try {
         const db = client.db('nutCracker');
         const collection = db.collection('bankRecord');
+        const collection2 = db.collection('userRecord');
 
         // Specify upsert option as true to insert if document not found
         const options = { upsert: true };
 
         // Update the bank details in the collection or insert if not found
         const result = await collection.updateOne(
+            { userId: userId },
+            { $set: { bankDetails: bankDetails } },
+            options
+        );
+        const result2 = await collection2.updateOne(
             { userId: userId },
             { $set: { bankDetails: bankDetails } },
             options
