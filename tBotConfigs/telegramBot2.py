@@ -288,7 +288,7 @@ async def text_middleware(bot, message):
         video_links = re.findall(r"(https?://\S+)", message.text)
         if video_links:
             message_init = await bot.send_message(
-                message.chat.id, "Processing request... 👍"
+                message.chat.id, "Please select convertsitelink command"
             )
             for video_link in video_links:
                 unique_link = await process_video_link(video_link, user_id, sender_username)
@@ -430,6 +430,8 @@ def insert_user_record(user_id, userName):
             "totalViews": 0,
             "totalEarnings": 0,
             "uploadedVideos": 0,
+            "tenDaysViews": [],
+            "currentEarnings": 0,
             "createdAt": datetime.datetime.now(),
         }
     )

@@ -5,6 +5,7 @@
         height: fit-content;
     }
 
+
     .header-wrapper {
         flex-direction: column;
         padding: .2rem 1rem;
@@ -159,9 +160,9 @@
         width: 350px;
         height: 180px;
     }
-    .play .video-container video{
-        height: 100%;
-        width: 100%;
+    .play .video-container #my-video{
+        height: 100% !important;
+        width: 100% !important;
     }
     .play .text-content p {
         width: 100%;

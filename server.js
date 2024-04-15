@@ -136,32 +136,96 @@ app.get('/play/:uniqueLink', async (req, res) => {
     try {
         const uniqueLink = req.params.uniqueLink;
         // Find the video based on unique link from MongoDB
-        const updatedVideo = await PlaybackVideo.findOneAndUpdate(
-            { uniqueLink },
-            { $inc: { viewCount: 1 } }, // Increment viewCount by 1
-            { new: true } // Return the updated document
-        );
+        const video = await PlaybackVideo.findOne({ uniqueLink });
 
-        if (!updatedVideo) {
+        if (!video) {
             return res.status(404).send('Video not found');
         }
 
-        // console.log('Updated Video:', updatedVideo); // Log the updated video object
-        // console.log('Related User:', updatedVideo.relatedUser); // Log the related user ID
-
-        // Update totalViews for relatedUser in userRecord collection
-        await updateUserTotalViews(updatedVideo.relatedUser);
-
-        // console.log(`View count updated for video with unique link ${uniqueLink}`);
-
+        
         // Render the HTML page with video filename and additional text content
-        res.render('video_page', { filename: updatedVideo.filename, relatedUser: updatedVideo.relatedUser });
+        res.render('video_page', { filename: video.filename, relatedUser: video.relatedUser, uniqueLink: video.uniqueLink });
     } catch (error) {
         console.error('Error updating view count:', error);
         res.status(500).send('Internal server error.');
     }
 });
 
+
+// Define a route to handle updating the view count
+app.get('/update-view/:uniqueLink', async (req, res) => {
+    try {
+        const uniqueLink = req.params.uniqueLink;
+        // Find the video based on unique link from MongoDB
+        const updatedVideo = await PlaybackVideo.findOneAndUpdate(
+            { uniqueLink },
+            { $inc: { viewCount: 1 } },
+            { new: true } 
+        );
+        console.log('Updated Video:', updatedVideo);
+        console.log('Related User:', updatedVideo.relatedUser); 
+
+
+        if (!updatedVideo) {
+            return res.status(404).send('Video not found');
+        }
+
+        await updateUserTotalViews(updatedVideo.relatedUser);
+
+        res.sendStatus(200);
+    } catch (error) {
+        console.error('Error updating view count:', error);
+        res.status(500).send('Internal server error.');
+    }
+});
+
+async function updateTenDaysViews(userId) {
+    try {
+        const db = client.db("nutCracker");
+        const userCollection = db.collection("userRecord");
+
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date().toISOString().split('T')[0];
+
+        // Find the user record
+        const user = await userCollection.findOne({ userId });
+        console.log("User:", user);
+
+        if (!user) {
+            console.error(`User with ID ${userId} not found.`);
+            return;
+        }
+
+        // Calculate total views for the last 10 days
+        const tenDaysAgo = new Date(today);
+        tenDaysAgo.setDate(tenDaysAgo.getDate() - 9); 
+        const tenDaysViews = user.tenDaysViews || [];
+
+        // Remove entries older than 10 days
+        const updatedTenDaysViews = tenDaysViews.filter(entry => entry.date >= tenDaysAgo.toISOString().split('T')[0]);
+
+        // Check if there is an entry for today
+        const todayEntryIndex = updatedTenDaysViews.findIndex(entry => entry.date === today);
+
+        if (todayEntryIndex !== -1) {
+            // If there is an entry for today, increment the view count
+            updatedTenDaysViews[todayEntryIndex].views += 1;
+        } else {
+            // If there is no entry for today, add a new entry
+            updatedTenDaysViews.push({ date: today, views: 1 });
+        }
+
+        // Update the tenDaysViews field in the user record
+        await userCollection.updateOne(
+            { userId: userId },
+            { $set: { tenDaysViews: updatedTenDaysViews } }
+        );
+
+        console.log(`Ten days views updated for user ${userId}.`);
+    } catch (error) {
+        console.error('Error updating ten days views:', error);
+    }
+}
 
 async function updateUserTotalViews(userId) {
     // console.log('Updating totalViews and totalEarnings for user:', userId);
@@ -188,9 +252,12 @@ async function updateUserTotalViews(userId) {
         { userId: userId },
         { $set: { totalEarnings } }
     );
-    // console.log('Update totalEarnings result:', updateResult);
-    // console.log(`Total earnings updated for user ${userId}: ${totalEarnings}`);
+    console.log('Update totalEarnings result:', updateResult);
+    console.log(`Total earnings updated for user ${userId}: ${totalEarnings}`);
+    updateTenDaysViews(userId);
 }
+
+
 
 async function updateCurrentEarningsWithDelay() {
     // Schedule a task to update currentEarnings every two days
@@ -218,24 +285,18 @@ async function updateCurrentEarningsWithDelay() {
     );
 }
 
-
-
-// Call the function to start updating currentEarnings with a delay of two days
 updateCurrentEarningsWithDelay();
 
-// In your server.js file
 
 app.get('/plays/:uniqueLink', async (req, res) => {
     try {
         const uniqueLink = req.params.uniqueLink;
-        // Find the video based on unique link from MongoDB
         const video = await PlaybackVideo.findOne({ uniqueLink });
 
         if (!video) {
             return res.status(404).send('Video not found');
         }
 
-        // Render the HTML page with video filename
         res.render('plays', { filename: video.filename, uniqueLink: uniqueLink });
     } catch (error) {
         console.error('Error rendering plays page:', error);

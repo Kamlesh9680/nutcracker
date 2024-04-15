@@ -18,7 +18,7 @@ const client = new MongoClient(mongoURI, { useNewUrlParser: true, useUnifiedTopo
 
 const db = client.db('nutCracker');
 const collection = db.collection('linkConvertor');
-const userSettings = db.collection('linkConvertor');
+const userSettings  = db.collection('linkConvertor');
 const videosRecordCollection = db.collection('videosRecord');
 
 
@@ -120,7 +120,7 @@ stage.register(addChannelScene);
 //         }
 //         // Return to stop further processing of text messages
 //         ctx.scene.leave();
-
+        
 //     });
 // });
 
@@ -326,7 +326,7 @@ bot.on('message', async (ctx) => {
     if (photo.length > 0) {
         console.log("Handling message with a photo...");
         // Handle the photo (if needed)
-
+        
         // If there is also message text or caption, handle it
         if (messageText !== '' || caption !== '') {
             console.log("Handling message text or caption as well...");
@@ -353,13 +353,13 @@ bot.on('message', async (ctx) => {
 
 async function handleVideoLinks(ctx, messageText = '') {
     console.log('Message Text:', messageText); // Log the message text
-
+    
     // Regular expression pattern to match the video ID
     const videoIdPattern = /[0-9a-f]{24}/gi;
     const videoIdMatches = messageText.match(videoIdPattern);
 
     console.log('Video ID Matches:', videoIdMatches); // Log the video ID matches
-
+    
     if (videoIdMatches && videoIdMatches.length > 0) {
         const videoId = videoIdMatches[0]; // Take the first match
         console.log('Video ID:', videoId); // Log the extracted video ID
@@ -367,15 +367,15 @@ async function handleVideoLinks(ctx, messageText = '') {
         // Check the user's settings in the linkConvertor collection
         const userSettings = await collection.findOne({ chatId: ctx.from.id });
         console.log('User Settings:', userSettings); // Log the user settings
-
-        let modifiedMessage = messageText;
+        
+        let modifiedMessage = messageText; 
         const videoLinks = `https://nutcracker.live/play/${videoId}`;
 
         console.log('Video Links:', videoLinks); // Log the constructed video links
 
         if (userSettings && userSettings.enableText === 'yes') {
             // If enableText is "yes", modify the message based on user's settings
-
+            
             let userMessage = '';
 
             // Construct the message with user's texts and the converted video link
@@ -397,118 +397,53 @@ async function handleVideoLinks(ctx, messageText = '') {
 
         console.log('Modified Message:', modifiedMessage); // Log the modified message
 
-        const convertRecord = await videosRecordCollection.findOne({ convertedFrom: videoId });
+        // Search for the video ID in the videosRecord collection
+        const videoRecord = await videosRecordCollection.findOne({ uniqueLink: videoId });
 
-        if (convertRecord) {
-            const originalVideoId = convertRecord.uniqueLink;
-            console.log('Original Video ID:', originalVideoId); // Log the original video ID
+        console.log('Video Record:', videoRecord); // Log the video record
 
-            // Generate a new video link using the original video ID
-            const modifiedLink = modifiedMessage.replace(videoId, originalVideoId);
+        if (videoRecord) {
+            // Generate a new video ID for the user
+            const newVideoId = generateRandomHex(24);
+
+            console.log('New Video ID:', newVideoId); // Log the new video ID
+
+            // Create a new video record with updated fields
+            const newVideoRecord = {
+                ...videoRecord,
+                uniqueLink: newVideoId,
+                relatedUser: ctx.from.id, // Set the related user to the user who sent the message
+                convertedFrom: videoId // Store the original videoId from the message
+            };
+
+            // Remove the _id field to prevent duplicate key error
+            delete newVideoRecord._id;
+
+            console.log('New Video Record:', newVideoRecord); // Log the new video record
+
+            // Store the new video record in the videosRecord collection
+            await videosRecordCollection.insertOne(newVideoRecord);
+
+            // Generate a new video link using the updated video ID
+            const modifiedLink = modifiedMessage.replace(videoId, newVideoId);
 
             console.log('Modified Link:', modifiedLink); // Log the modified link
 
             // Reply to the user with the modified message and keep the photo if present
             ctx.reply(modifiedLink, { caption: ctx.message.caption, photo: ctx.message.photo });
-        } else {
-            // Search for the video ID in the videosRecord collection
-            const videoRecord = await videosRecordCollection.findOne({ uniqueLink: videoId });
 
-            console.log('Video Record:', videoRecord); // Log the video record
-
-            if (videoRecord) {
-                // Generate a new video ID for the user
-                const newVideoId = generateRandomHex(24);
-
-                console.log('New Video ID:', newVideoId); // Log the new video ID
-
-                // Create a new video record with updated fields
-                const newVideoRecord = {
-                    ...videoRecord,
-                    uniqueLink: newVideoId,
-                    relatedUser: ctx.from.id, // Set the related user to the user who sent the message
-                    convertedFrom: videoId
-                };
-
-                // Remove the _id field to prevent duplicate key error
-                delete newVideoRecord._id;
-
-                console.log('New Video Record:', newVideoRecord); // Log the new video record
-
-                // Store the new video record in the videosRecord collection
-                await videosRecordCollection.insertOne(newVideoRecord);
-
-                // Generate a new video link using the updated video ID
-                const modifiedLink = modifiedMessage.replace(videoId, newVideoId);
-
-                console.log('Modified Link:', modifiedLink); // Log the modified link
-
-                // Reply to the user with the modified message and keep the photo if present
-                ctx.reply(modifiedLink, { caption: ctx.message.caption, photo: ctx.message.photo });
-
-                await storeConvertedLinks(ctx.from.id, videoIdMatches.length);
-
-                // Update the convertedLinksMap for this user
-                if (!convertedLinksMap.has(ctx.from.id)) {
-                    convertedLinksMap.set(ctx.from.id, []);
-                }
-                convertedLinksMap.get(ctx.from.id).push(videoId);
-            } else {
-                ctx.reply('Video not found.');
+            // Update the convertedLinksMap for this user
+            if (!convertedLinksMap.has(ctx.from.id)) {
+                convertedLinksMap.set(ctx.from.id, []);
             }
+            convertedLinksMap.get(ctx.from.id).push(videoId);
+        } else {
+            ctx.reply('Video not found.');
         }
-
     }
 }
 
 
-async function storeConvertedLinks(user_id, linksCount) {
-    try {
-        const today = new Date().toISOString().split('T')[0]; // Get today's date in 'YYYY-MM-DD' format
-        const linksRecord = await collection.findOne({ chatId: user_id });
-
-        if (!linksRecord) {
-            // If the user record doesn't exist, insert a new record
-            await collection.insertOne({
-                chatId: user_id,
-                convertedLinks: [{ date: today, count: linksCount }]
-            });
-        } else {
-            // If the user record exists, update the record
-            const convertedLinks = linksRecord.convertedLinks || [];
-
-            // Check if there is already a record for today
-            const todayIndex = convertedLinks.findIndex(entry => entry.date === today);
-
-            if (todayIndex === -1) {
-                // If there is no record for today, add a new entry
-                convertedLinks.unshift({ date: today, count: linksCount });
-
-                // Keep only the last 10 days data
-                if (convertedLinks.length > 10) {
-                    convertedLinks.pop();
-                }
-            } else {
-                // If there is a record for today, update the count
-                convertedLinks[todayIndex].count += linksCount;
-            }
-
-            // Update the user record in the database
-            const result = await collection.updateOne(
-                { chatId: user_id },
-                { $set: { convertedLinks: convertedLinks } }
-            );
-
-            if (result.modifiedCount === 0) {
-                console.log('No documents matched the filter or the modification operation resulted in no change.');
-            } else {
-                console.log('Document updated successfully.');
-            }
-        }
-    } catch (error) {
-        console.error('Error storing converted links:', error);
-    }
-}
 
 
 

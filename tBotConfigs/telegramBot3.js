@@ -1,5 +1,5 @@
 const { Telegraf, session } = require('telegraf');
-const { Markup } = require('telegraf');
+const { Scenes, Markup } = require('telegraf');
 // const { GoogleSpreadsheet } = require('google-spreadsheet');
 const { MongoClient } = require('mongodb');
 const dotenv = require('dotenv');
@@ -77,34 +77,132 @@ bot.command("checktotalviews", async (ctx) => {
     const user_id = ctx.message.from.id;
     const user_record = await get_user_record(user_id);
     const total_views = user_record.totalViews || 0;
-    await ctx.reply(`Total views for your videos: ${total_views}`);
+    const total_earning = user_record.currentEarnings;
+    await ctx.reply(`Total views for your videos: ${total_views}\n\nYour Total Earnings: $${total_earning}`);
 });
 
 bot.command("viewshistory", async (ctx) => {
     const user_id = ctx.message.from.id;
 
-    // Retrieve last 10 uploaded videos' history from the database
-    const video_history_cursor = videoCollection.find(
-        { relatedUser: user_id },
-        { _id: 0, videoId: 1, viewCount: 1 }
-    ).sort({ createdAt: -1 }).limit(10);
-
-    const video_history = await video_history_cursor.toArray();
+    // Retrieve user's record from the database
+    const userRecord = await userCollection.findOne({ userId: user_id });
 
     let response_message = "";
-    if (video_history.length > 0) {
-        response_message = "Last 10 video views:\n";
-        video_history.forEach((video) => {
-            response_message += `Video ID: ${video.fileUniqueId}, Views: ${video.viewCount}\n`;
+
+    if (userRecord && userRecord.tenDaysViews && userRecord.tenDaysViews.length > 0) {
+        response_message = "Last 10 days views:\n\n";
+        userRecord.tenDaysViews.forEach((entry) => {
+            response_message += `Date: ${entry.date}, Total views: ${entry.views}\n`;
         });
     } else {
-        response_message = "You haven't uploaded any videos yet.";
+        response_message = "You haven't watched any videos yet.";
     }
 
     await ctx.reply(response_message);
 });
 
 
+
+
+
+
+// Create a new scene for editing bank details
+const editBankDetailsScene = new Scenes.BaseScene('editBankDetailsScene');
+
+// Step 1: Prompt user with confirmation message and buttons
+editBankDetailsScene.enter(async (ctx) => {
+    await ctx.reply('Are you sure you want to add/edit your bank account details?', Markup.inlineKeyboard([
+        Markup.button.callback('Yes', 'edit_bank_details_yes'),
+        Markup.button.callback('No', 'edit_bank_details_no')
+    ]));
+});
+
+// Step 2: Handle user response to confirmation message
+editBankDetailsScene.action('edit_bank_details_yes', async (ctx) => {
+    await ctx.reply('Please provide your bank name:');
+    ctx.scene.state.step = 1; // Set the current step to 1
+    ctx.scene.state.bankDetails = {}; // Initialize bankDetails object to store user input
+});
+
+editBankDetailsScene.action('edit_bank_details_no', async (ctx) => {
+    await ctx.reply('Bank account details update cancelled.');
+    ctx.scene.leave(); // Leave the scene
+});
+
+// Step 3: Handle user input for bank details
+editBankDetailsScene.on('text', async (ctx) => {
+    const step = ctx.scene.state.step;
+    const bankDetails = ctx.scene.state.bankDetails;
+
+    if (step === 1) {
+        bankDetails.bankName = ctx.message.text;
+        await ctx.reply('Please provide your account number:');
+        ctx.scene.state.step = 2; // Move to next step
+    } else if (step === 2) {
+        bankDetails.accountNo = ctx.message.text;
+        await ctx.reply('Please provide your IFSC:');
+        ctx.scene.state.step = 3; // Move to next step
+    } else if (step === 3) {
+        bankDetails.ifsc = ctx.message.text;
+        await ctx.reply('Please provide your account holder name:');
+        ctx.scene.state.step = 4; // Move to next step
+    } else if (step === 4) {
+        bankDetails.accountHolderName = ctx.message.text;
+
+        // Save bank details to the database (you'll need to implement this)
+        const success = await saveBankDetails(ctx.message.from.id, bankDetails);
+
+        if (success) {
+            await ctx.reply('Bank account details added/updated successfully.');
+        } else {
+            await ctx.reply('Failed to update bank account details. Please try again later.');
+        }
+
+        ctx.scene.leave(); // Leave the scene after updating bank details
+    }
+});
+
+// Function to save bank details to the database
+async function saveBankDetails(userId, bankDetails) {
+    try {
+        const db = client.db('nutCracker');
+        const collection = db.collection('bankRecord');
+
+        // Specify upsert option as true to insert if document not found
+        const options = { upsert: true };
+
+        // Update the bank details in the collection or insert if not found
+        const result = await collection.updateOne(
+            { userId: userId },
+            { $set: { bankDetails: bankDetails } },
+            options
+        );
+
+        if (result.upsertedCount === 1 || result.modifiedCount === 1) {
+            console.log('Bank details saved successfully');
+            return true; // Success
+        } else {
+            console.log('No documents matched the query to update or insert');
+            return false; // Failure
+        }
+    } catch (error) {
+        console.error('Error saving bank details:', error);
+        return false; // Failure
+    }
+}
+
+
+// Register the scene with Telegraf
+// const stage = new Scenes.Stage([editBankDetailsScene]);
+const stage = new Scenes.Stage();
+bot.use(stage.middleware());
+
+// Command handler for /editbankdetails
+bot.command('editbankdetails', async (ctx) => {
+    // Enter the editBankDetailsScene
+    await ctx.scene.enter('editBankDetailsScene');
+});
+stage.register(editBankDetailsScene);
 
 bot.command("withdraw", async (ctx) => {
     const user_id = ctx.message.from.id;
@@ -115,64 +213,30 @@ bot.command("withdraw", async (ctx) => {
         return;
     }
 
-    if (!ctx.session) {
-        ctx.session = {};
-    }
+    // const bankRecord = await bankCollection.findOne({ userId: user_id });
+
+    // if (!bankRecord) {
+    //     await ctx.reply("Please add your bank details first using the /addbank command.");
+    //     return;
+    // }
 
     const withdrawal_record = await withdrawalCollection.findOne({ userId: user_id });
 
     if (withdrawal_record) {
         await ctx.reply("Enter the withdrawal amount in dollars:");
         ctx.session.withdrawalRecord = withdrawal_record; // Store the withdrawal record in the session
+        ctx.session.expectingWithdrawalAmount = true; // Set a flag to expect withdrawal amount
     } else {
-        await ctx.reply("Enter your bank name:");
-        ctx.session.expectingBankName = true; // Set a flag to expect bank name
+        await ctx.reply("Please add your bank details first using the /editbankdetails command.");
+        return;
     }
 });
 
 bot.on("text", async (ctx) => {
     const user_id = ctx.message.from.id;
-    const { withdrawalRecord, expectingBankName, expectingAccountNo, expectingIFSC, expectingAccountHolderName } = ctx.session;
+    const { withdrawalRecord, expectingWithdrawalAmount } = ctx.session;
 
-    if (expectingBankName) {
-        const bankName = ctx.message.text;
-        // Save bank name to the session
-        ctx.session.bankDetails = { bankName };
-        // Prompt for the next bank detail
-        await ctx.reply("Enter your account number:");
-        ctx.session.expectingBankName = false;
-        ctx.session.expectingAccountNo = true;
-    } else if (expectingAccountNo) {
-        const accountNo = ctx.message.text;
-        // Save account number to the session
-        ctx.session.bankDetails.accountNo = accountNo;
-        // Prompt for the next bank detail
-        await ctx.reply("Enter the IFSC:");
-        ctx.session.expectingAccountNo = false;
-        ctx.session.expectingIFSC = true;
-    } else if (expectingIFSC) {
-        const ifsc = ctx.message.text;
-        // Save IFSC to the session
-        ctx.session.bankDetails.ifsc = ifsc;
-        // Prompt for the next bank detail
-        await ctx.reply("Enter the account holder's name:");
-        ctx.session.expectingIFSC = false;
-        ctx.session.expectingAccountHolderName = true;
-    } else if (expectingAccountHolderName) {
-        const accountHolderName = ctx.message.text;
-        // Save account holder's name to the session
-        ctx.session.bankDetails.accountHolderName = accountHolderName;
-        // Save bank details to the withdrawal collection
-        const success = await save_to_withdrawal_collection(user_id, ctx.session.bankDetails, 0); // No withdrawal amount yet
-
-        if (success) {
-            await ctx.reply("Your bank details have been saved successfully. Now you can provide the withdrawal amount.");
-            delete ctx.session.bankDetails; // Clear bank details from session
-        } else {
-            await ctx.reply("Failed to save your bank details. Please try again later.");
-        }
-    }else if (withdrawalRecord) {
-        // User provided withdrawal amount
+    if (expectingWithdrawalAmount) {
         const withdrawalAmount = parseFloat(ctx.message.text);
         if (isNaN(withdrawalAmount) || withdrawalAmount <= 0) {
             await ctx.reply("Invalid withdrawal amount. Please enter a valid amount in dollars.");
@@ -181,7 +245,7 @@ bot.on("text", async (ctx) => {
 
         // Retrieve user's earnings from the user record
         const userRecord = await userCollection.findOne({ userId: user_id });
-        const userEarnings = userRecord.totalEarnings || 0;
+        const userEarnings = userRecord.currentEarnings || 0;
 
         // Check if withdrawal amount exceeds user earnings
         if (withdrawalAmount > userEarnings) {
@@ -198,7 +262,7 @@ bot.on("text", async (ctx) => {
                 //     userId: user_id,
                 //     withdrawalAmount: withdrawalAmount,
                 // });
-                await ctx.reply("Your withdrawal request has been processed successfully\nIt will be processed in 48 hours.");
+                await ctx.reply("Your withdrawal request has been processed successfully. It will be processed in 48 hours.");
             } catch (error) {
                 console.error('Error sending withdrawal request to the dashboard:', error);
                 await ctx.reply("Your withdrawal request has been processed successfully.");
@@ -208,9 +272,10 @@ bot.on("text", async (ctx) => {
         }
 
         // Clear the session
-        delete ctx.session.withdrawalRecord;
+        delete ctx.session.expectingWithdrawalAmount;
     }
 });
+
 
 
 async function save_to_withdrawal_collection(user_id, bankDetails, withdrawalAmount) {

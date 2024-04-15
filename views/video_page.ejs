@@ -47,7 +47,7 @@
 
             <div class="text-content">
                 <h4>News:</h4>
-                <p>In the realm of international news, certain topics tend to dominate headlines and capture widespread attention. Geopolitical developments, such as diplomatic negotiations, conflicts, and international summits, often draw significant interest as they shape global relations and impact multiple countries. Humanitarian crises, including natural disasters, refugee movements, and healthcare emergencies, elicit empathetic responses and prompt calls for international aid and solidarity. Economic news, such as market fluctuations, trade agreements, and economic policies, reverberates across borders, influencing global financial stability and individual livelihoods. Technological advancements and innovations, particularly in areas like artificial intelligence, space exploration, and renewable energy, captivate audiences worldwide as they hold the potential to reshape societies and economies. Additionally, environmental issues, such as climate change, biodiversity loss, and natural resource management, garner widespread concern as they pose existential threats to the planet and require coordinated action on a global scale. Amidst this array of topics, stories that resonate with universal human experiences, promote cross-cultural understanding, and inspire positive change often rise to prominence, reflecting the interconnectedness of our increasingly globalized world.</p>
+                <p>In the realm of international news, certain topics tend to dominate headlines and capture widespread attention. Geopolitical developments, such as diplomatic negotiations, conflicts, and international summits, often draw significant interest as they shape global relations and impact multiple countries. Humanitarian crises, including natural disasters, refugee movements, and healthcare emergencies, elicit empathetic responses and prompt calls for international aid and solidarity. Economic news, such as market fluctuations, trade agreements, and economic policies, reverberates across borders, influencing global financial stability and individual livelihoods. Technological advancements and innovations, particularly in areas like artificial intelligence, space exploration, and renewable energy, captivate audiences worldwide as they hold the potential to reshape societies and economies. Additionally, environmental issues, such as climate change, biodiversity loss, and natural resource management, garner widespread concern as they pose existential threats to the planet and require coordinated action on a global scale. Amidst this array of topics, stories that resonate with universal human experiences, promote cross-cultural understanding, and inspire positive change often rise to prominence, reflecting the interconnectedness of our increasingly globalized world.</p>
             </div>
         </main>
         <footer class="footer">
@@ -66,16 +66,30 @@
     <script src="https://vjs.zencdn.net/7.14.3/video.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Video.js player
             var player = videojs('my-video');
-            // Set the video source dynamically using EJS
             var source = {
                 src: '/uploads/<%= filename %>',
                 type: 'video/mp4'
             };
             player.src(source);
+    
+            var viewed = false;
+    
+            player.on('play', function() {
+                if (!viewed) {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('GET', '/update-view/<%= uniqueLink %>', true);
+                    xhr.send();
+                    viewed = true;
+                }
+            });
+    
+            player.on('ended', function() {
+                viewed = false;
+            });
         });
     </script>
+    
 </body>
 
 </html>

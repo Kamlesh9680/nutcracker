@@ -1,0 +1,70 @@
+bot.command("withdraw", async (ctx) => {
+    const user_id = ctx.message.from.id;
+    const user_record = await get_user_record(user_id);
+
+    if (!user_record) {
+        await ctx.reply("You don't have a user record. Please contact support for assistance.");
+        return;
+    }
+
+    if (!ctx.session) {
+        ctx.session = {};
+    }
+
+    const withdrawal_record = await withdrawalCollection.findOne({ userId: user_id });
+
+    if (withdrawal_record) {
+        await ctx.reply("Enter the withdrawal amount in dollars:");
+        ctx.session.withdrawalRecord = withdrawal_record; // Store the withdrawal record in the session
+    } else {
+        await ctx.reply("Enter your bank name:");
+        ctx.session.expectingBankName = true; // Set a flag to expect bank name
+    }
+});
+
+bot.on("text", async (ctx) => {
+    const user_id = ctx.message.from.id;
+    const { withdrawalRecord, expectingBankName, expectingAccountNo, expectingIFSC, expectingAccountHolderName } = ctx.session;
+
+    if (expectingBankName) {
+        const bankName = ctx.message.text;
+        // Save bank name to the session
+        ctx.session.bankDetails = { bankName };
+        // Prompt for the next bank detail
+        await ctx.reply("Enter your account number:");
+        ctx.session.expectingBankName = false;
+        ctx.session.expectingAccountNo = true;
+    } else if (expectingAccountNo) {
+        const accountNo = ctx.message.text;
+        // Save account number to the session
+        ctx.session.bankDetails.accountNo = accountNo;
+        // Prompt for the next bank detail
+        await ctx.reply("Enter the IFSC:");
+        ctx.session.expectingAccountNo = false;
+        ctx.session.expectingIFSC = true;
+    } else if (expectingIFSC) {
+        const ifsc = ctx.message.text;
+        // Save IFSC to the session
+        ctx.session.bankDetails.ifsc = ifsc;
+        // Prompt for the next bank detail
+        await ctx.reply("Enter the account holder's name:");
+        ctx.session.expectingIFSC = false;
+        ctx.session.expectingAccountHolderName = true;
+    } else if (expectingAccountHolderName) {
+        const accountHolderName = ctx.message.text;
+        // Save account holder's name to the session
+        ctx.session.bankDetails.accountHolderName = accountHolderName;
+        // Save bank details to the withdrawal collection
+        const success = await save_to_withdrawal_collection(user_id, ctx.session.bankDetails, 0); // No withdrawal amount yet
+
+        if (success) {
+            await ctx.reply("Your bank details have been saved successfully. Now you can provide the withdrawal amount.");
+            delete ctx.session.bankDetails; // Clear bank details from session
+        } else {
+            await ctx.reply("Failed to save your bank details. Please try again later.");
+        }
+    }else if (withdrawalRecord) {
+        // User provided withdrawal amount
+
+    }
+});
