@@ -153,7 +153,7 @@
     .upload .linkcontainer {
         margin-bottom: 1rem;
     }
-    .play{
+    .play, .plays{
         padding: 1rem;
     }
     .play .video-container, .plays .video-container{
