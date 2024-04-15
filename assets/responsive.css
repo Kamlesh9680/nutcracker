@@ -157,8 +157,8 @@
         padding: 1rem;
     }
     .play .video-container, .plays .video-container{
-        width: 350px;
-        height: 180px;
+        width: 350px !important;
+        height: 180px !important;
     }
     .play .video-container #my-video, .plays .video-container #my-video.video-js{
         height: 100% !important;
