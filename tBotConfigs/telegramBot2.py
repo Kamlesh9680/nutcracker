@@ -291,7 +291,7 @@ async def text_middleware(bot, message):
                 message.chat.id, "Please select convertsitelink command"
             )
             for video_link in video_links:
-                unique_link = await process_video_link(bot, message, video_id)
+                unique_link = await process_video_link(video_link, user_id, sender_username)
                 await message.reply(
                     f"""Your video has been uploaded successfully... \n\n😊😊Now you can start using the link:\n\n{unique_link}"""
                 )
@@ -333,48 +333,49 @@ async def load_session_data(user_id):
 
 
 # Async function to process video link
-async def process_video_link(bot, message, video_id):
-     try:
-        # Search for the video ID in the 'tmpRecord' collection
-        tmp_record = tmp_record_collection.find_one({"uniqueLink": video_id})
-        user_id = message.from_user.id
+# async def process_video_link(video_link: str, user_id: int, sender_username: str) -> str:
+#     # Check if the video link is from terabox
+#     if "terabox" not in video_link:
+#         return "Only terabox links are supported."
 
-        # Check if the video ID was found in the 'tmpRecord' collection
-        if not tmp_record:
-            await message.reply("No video found.")
-            return
-
-        # Move the video file from '/tmpvideos' to '/uploads'
-        source_file_path = f"../tmpvideos/{tmp_record['filename']}"  # Update source file path
-        dest_file_path = f"../uploads/{tmp_record['filename']}"
-
-        # Check if the source file exists
-        if os.path.exists(source_file_path):
-            # Rename the source file to the destination file
-            os.rename(source_file_path, dest_file_path)
-
-            # Create a new record in the 'videosRecord' collection
-            new_video_record = {
-                "filename": tmp_record["filename"],
-                "uniqueLink": video_id,
-                "relatedUser": user_id,
-                "viewCount": 0,
-            }
-            video_collection.insert_one(new_video_record)
-
-            # Generate a unique link for the user to play the converted video
-            unique_link = f"https://nutcracker.live/play/{video_id}"
-
-            # Inform the user about the successful conversion and provide the unique link
-            await bot.send_message(
-                message.chat.id, f"Video converted successfully!\nYou can play it using the following link:\n\n{unique_link}"
-            )
-        else:
-            await message.reply("The source video file does not exist.")
-    except Exception as error:
-        print("Error processing site link:", error)
-        await message.reply("An error occurred while processing the site link. Please try again later.")
-
+#     try:
+#         # Attempt to request the video link headers to check if the video is playable
+#         response = requests.head(video_link, allow_redirects=True)
+#         content_type = response.headers.get("content-type")
+        
+#         # Check if the content type is video
+#         if content_type and "video" in content_type:
+#             # Download and store the video
+#             video_path = download_and_store_video(video_link)
+            
+#             # Check if video_path is None
+#             if video_path is None:
+#                 return "Failed to download and store the video."
+            
+#             # Generate unique ID for the video
+#             videoId = generate_random_hex(24)
+            
+#             # Prepare video info to store in the database
+#             video_info = {
+#                 "filename": os.path.basename(video_path),
+#                 "fileLocalPath": f"../uploads/{videoId}",
+#                 "file_size": os.path.getsize(video_path),
+#                 "duration": 0,  # Update with actual duration if available
+#                 "mime_type": "video/mp4",  # Update with actual MIME type if available
+#                 "uniqueLink": videoId,
+#                 "relatedUser": user_id,
+#                 "userName": sender_username or "",
+#             }
+#             videoCollection.insert_one(video_info)
+            
+#             # Generate URL for the uploaded video
+#             videoUrl = f"http://nutcracker.live/play/{videoId}"
+#             return videoUrl
+#         else:
+#             return "The provided link does not point to a playable video."
+#     except Exception as e:
+#         print(e)
+#         return "An error occurred while processing the video link."
 
 
 async def process_site_link(bot, message, video_id):
