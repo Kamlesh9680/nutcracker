@@ -281,21 +281,20 @@ async def text_middleware(bot, message):
         await delete_video_link(bot, message, video_id)
         app.should_process_message = False
     
-    
     else:
         user_id = message.from_user.id
         sender_username = message.from_user.username
         video_links = re.findall(r"(https?://\S+)", message.text)
         if video_links:
+            await save_session_data(user_id, {"converting_site_link": True})  # Simulate selection of the convertsitelink command
             message_init = await bot.send_message(
-                message.chat.id, "Please select convertsitelink command"
+                message.chat.id, "Please provide the video link:"
             )
             for video_link in video_links:
-                unique_link = await process_video_link(video_link, user_id, sender_username)
-                await message.reply(
-                    f"""Your video has been uploaded successfully... \n\n😊😊Now you can start using the link:\n\n{unique_link}"""
-                )
+                video_id = video_link.split('/')[-1]
+                await process_site_link(bot, message, video_id)
             await message_init.delete()
+            await save_session_data(user_id, {})
         else:
             await bot.send_message(
                 message.chat.id, """\nPlease Choose From Menu Options... \n\n👇👇"""
