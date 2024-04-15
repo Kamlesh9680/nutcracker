@@ -153,8 +153,19 @@
     .upload .linkcontainer {
         margin-bottom: 1rem;
     }
-    .play, .plays{
+    .page-wrapper.playsp{
+        height: 100vh;
+    }
+    .footer.playsp{
+        position: fixed;
+        bottom: 0;
+        left: 0;
+    }
+    .play{
         padding: 1rem;
+    }
+    .plays{
+        padding: 3rem 1rem;
     }
     .play .video-container, .plays .video-container{
         width: 350px !important;
