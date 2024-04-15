@@ -160,7 +160,7 @@
         width: 350px;
         height: 180px;
     }
-    .play .video-container #my-video, .plays .video-container #my-video{
+    .play .video-container #my-video, .plays .video-container #my-video.video-js{
         height: 100% !important;
         width: 100% !important;
     }
