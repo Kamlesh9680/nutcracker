@@ -4,13 +4,14 @@ import os
 
 
 
-with open('config.json', 'r') as f: DATA = load(f)
-def getenv(var): return environ.get(var) or DATA.get(var, None)
+
 # Initialize your Pyrogram client
 bot_token = '6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE'
-api_hash = getenv("HASH") 
-api_id = getenv("ID")
-app = Client("my_bot",api_id=api_id, api_hash=api_hash,bot_token=bot_token)  
+# api_hash = getenv("HASH") 
+# api_id = getenv("ID")
+app = Client("my_bot", bot_token=bot_token)  
+
+
 # Handler for /start command
 @app.on_message(filters.command("start"))
 def start(client, message):
