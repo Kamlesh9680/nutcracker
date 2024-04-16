@@ -13,12 +13,12 @@ app = Client("my_bot", bot_token=bot_token)
 
 
 # Handler for /start command
-@app.on_message(filters.command("start"))
+@app.on_message(filters.command(["start"]))
 def start(client, message):
     message.reply_text('Hello! Send me a video link and I will download it for you.')
 
 # Handler for text messages containing video links
-@app.on_message(filters.create(lambda _, __, m: m.text and not m.command))
+@app.on_message(filters.text)
 def handle_video_link(client, message):
     print("starting")
     link = message.text
