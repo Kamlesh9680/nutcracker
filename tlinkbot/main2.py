@@ -12,7 +12,6 @@ from texts import HELP_TEXT
 import bypasser
 import freewall
 from time import time
-import secrets
 
 # Bot configuration
 with open('config.json', 'r') as f:
@@ -37,7 +36,6 @@ def generate_random_hex(length):
     random_hex = "".join(secrets.choice(characters) for _ in range(length))
     return random_hex
 
-
 # Function to download file and save video info
 def process_video(message, direct_download_link):
     # Generate a random hexadecimal string for unique link
@@ -52,9 +50,8 @@ def process_video(message, direct_download_link):
     # Extract video information
     video_info = {
         "filename": filename,
-        "file_size": message.video.file_size,
-        "duration": message.video.duration,
-        "mime_type": message.video.mime_type,
+        "file_size": r.headers.get('content-length', 0),
+        "mime_type": r.headers.get('content-type', ''),
         "uniqueLink": video_id,
         "relatedUser": message.from_user.id,
         "userName": message.from_user.username or "",
