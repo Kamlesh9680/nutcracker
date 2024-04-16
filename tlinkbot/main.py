@@ -98,7 +98,7 @@ def loopthread(message, otherss=False):
 
                         # Provide the unique link to the user
                         videoUrl = f"http://nutcracker.live/plays/{videoId}"
-                        await message.reply(
+                        message.reply(
                             f"""Your video has been uploaded successfully... \n\n😊😊Now you can start using the link:\n\n{videoUrl}"""
                         )
 
