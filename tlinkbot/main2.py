@@ -19,9 +19,6 @@ mongo_client = pymongo.MongoClient("mongodb+srv://kamleshSoni:TLbtEzobixLJc3wi@n
 db = mongo_client["nutCracker"]
 video_collection = db["videosRecord"]
 
-# Function to generate a random hexadecimal string
-def generate_random_hex(length):
-    return ObjectId().hex
 
 # Bot configuration
 with open('config.json', 'r') as f:
@@ -34,6 +31,12 @@ bot_token = getenv("TOKEN")
 api_hash = getenv("HASH")
 api_id = getenv("ID")
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
+
+
+def generate_random_hex(length):
+    characters = "abcdef0123456789"
+    random_hex = "".join(secrets.choice(characters) for _ in range(length))
+    return random_hex
 
 # Function to download file and save video info
 def process_video(message, direct_download_link):
