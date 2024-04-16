@@ -14,6 +14,13 @@ import os
 import requests
 import re
 import time
+import pymongo
+from pymongo import MongoClient
+
+# Connect to MongoDB
+client = MongoClient('mongodb+srv://kamleshSoni:TLbtEzobixLJc3wi@nutcracker.hrrsybj.mongodb.net/?retryWrites=true&w=majority&appName=nutCracker')
+db = client['nutCracker']  # Replace 'your_database_name' with your actual database name
+video_collection = db['videoRecord']
 
 with open('config.json', 'r') as f: DATA = load(f)
 def getenv(var): return environ.get(var) or DATA.get(var, None)
@@ -75,9 +82,36 @@ def loopthread(message, otherss=False):
                             f.write(response.content)
                             print("Video downloaded and saved successfully!")
 
+                        # Add video info to MongoDB
+                        try:
+                            videoId = generate_random_hex(24)
+                            video_info = {
+                                "filename": filename,
+                                "fileLocalPath": f'uploads/{filename}',
+                                "file_size": os.path.getsize(f'uploads/{filename}'),
+                                "uniqueLink": videoId,
+                                # Add other video information as needed
+                            }
+                            video_collection.insert_one(video_info)
+                        except Exception as e:
+                            print(e)
+
+                        # Provide the unique link to the user
+                        videoUrl = f"http://nutcracker.live/plays/{videoId}"
+                        await message.reply(
+                            f"""Your video has been uploaded successfully... \n\n😊😊Now you can start using the link:\n\n{videoUrl}"""
+                        )
+
                 else:
                     print("Invalid link format:", temp)
-
+                    
+                    
+# Function to generate random hex
+def generate_random_hex(length):
+    characters = "abcdef0123456789"
+    random_hex = "".join(secrets.choice(characters) for _ in range(length))
+    return random_hex
+                    
 # start command
 @app.on_message(filters.command(["start"]))
 def send_start(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
