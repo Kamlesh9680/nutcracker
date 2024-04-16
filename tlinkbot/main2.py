@@ -20,6 +20,7 @@ def start(client, message):
 # Handler for text messages containing video links
 @app.on_message(filters.create(lambda _, __, m: m.text and not m.command))
 def handle_video_link(client, message):
+    print("starting")
     link = message.text
     # Assuming you have a function to extract direct download links
     direct_download_link = extract_direct_download_link(link)
