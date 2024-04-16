@@ -8,10 +8,8 @@
     <link rel="stylesheet" href="/assets/style.css">
     <link rel="stylesheet" href="/assets/responsive.css">
     <link href="https://vjs.zencdn.net/7.14.3/video-js.css" rel="stylesheet">
-    <link
-    href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css"
-    rel="stylesheet"
-/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/1.11.0/videojs.ima.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
 </head>
 
 <body>
@@ -32,22 +30,40 @@
         </header>
         <main class="play">
             <div class="video-container">
-                <video id="my-video" class="video-js vjs-default-skin" controls width="760" height="400">
+                <video id="my-video" class="video-js vjs-default-skin" controls preload="auto" width="760" height="400"
+                    data-setup="{}">
                     <p class="vjs-no-js">
                         To view this video please enable JavaScript, and consider upgrading to a web browser that
-                        <a href="https://videojs.com/html5-video-support/" target="_blank" rel="noopener">supports HTML5 video</a>
+                        <a href="https://videojs.com/html5-video-support/" target="_blank" rel="noopener">supports HTML5
+                            video</a>
                     </p>
                 </video>
             </div>
             <div class="user-info">
                 <i class="ri-user-fill"></i>
                 <h4>Uploaded By:</h4>
-                <p><%= relatedUser %></p>
+                <p>
+                    <%= relatedUser %>
+                </p>
             </div>
 
             <div class="text-content">
                 <h4>News:</h4>
-                <p>In the realm of international news, certain topics tend to dominate headlines and capture widespread attention. Geopolitical developments, such as diplomatic negotiations, conflicts, and international summits, often draw significant interest as they shape global relations and impact multiple countries. Humanitarian crises, including natural disasters, refugee movements, and healthcare emergencies, elicit empathetic responses and prompt calls for international aid and solidarity. Economic news, such as market fluctuations, trade agreements, and economic policies, reverberates across borders, influencing global financial stability and individual livelihoods. Technological advancements and innovations, particularly in areas like artificial intelligence, space exploration, and renewable energy, captivate audiences worldwide as they hold the potential to reshape societies and economies. Additionally, environmental issues, such as climate change, biodiversity loss, and natural resource management, garner widespread concern as they pose existential threats to the planet and require coordinated action on a global scale. Amidst this array of topics, stories that resonate with universal human experiences, promote cross-cultural understanding, and inspire positive change often rise to prominence, reflecting the interconnectedness of our increasingly globalized world.</p>
+                <p>In the realm of international news, certain topics tend to dominate headlines and capture widespread
+                    attention. Geopolitical developments, such as diplomatic negotiations, conflicts, and international
+                    summits, often draw significant interest as they shape global relations and impact multiple
+                    countries. Humanitarian crises, including natural disasters, refugee movements, and healthcare
+                    emergencies, elicit empathetic responses and prompt calls for international aid and solidarity.
+                    Economic news, such as market fluctuations, trade agreements, and economic policies, reverberates
+                    across borders, influencing global financial stability and individual livelihoods. Technological
+                    advancements and innovations, particularly in areas like artificial intelligence, space exploration,
+                    and renewable energy, captivate audiences worldwide as they hold the potential to reshape societies
+                    and economies. Additionally, environmental issues, such as climate change, biodiversity loss, and
+                    natural resource management, garner widespread concern as they pose existential threats to the
+                    planet and require coordinated action on a global scale. Amidst this array of topics, stories that
+                    resonate with universal human experiences, promote cross-cultural understanding, and inspire
+                    positive change often rise to prominence, reflecting the interconnectedness of our increasingly
+                    globalized world.</p>
             </div>
         </main>
         <footer class="footer">
@@ -64,18 +80,21 @@
 
 
     <script src="https://vjs.zencdn.net/7.14.3/video.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/1.11.0/videojs.ima.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/6.6.5/videojs.ads.min.js"></script>
+    <script src="//imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             var player = videojs('my-video');
             var source = {
                 src: '/uploads/<%= filename %>',
                 type: 'video/mp4'
             };
             player.src(source);
-    
+
             var viewed = false;
-    
-            player.on('play', function() {
+
+            player.on('play', function () {
                 if (!viewed) {
                     var xhr = new XMLHttpRequest();
                     xhr.open('GET', '/update-view/<%= uniqueLink %>', true);
@@ -83,13 +102,106 @@
                     viewed = true;
                 }
             });
-    
-            player.on('ended', function() {
+
+            player.on('ended', function () {
                 viewed = false;
             });
         });
     </script>
-    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            console.log("DOM Content Loaded");
+
+            var player = videojs("my-video");
+            console.log("Video.js player initialized");
+
+            var vastTagPreroll = "https://www.videosprofitnetwork.com/watch.xml?key=f6cb54cabfbf77bb2d615b9eacb3f58b";
+            var vastTagMidroll = "path/to/your/vast-tag.xml";
+            var vastTagPostroll = "https://www.videosprofitnetwork.com/watch.xml?key=f6cb54cabfbf77bb2d615b9eacb3f58b";
+            var prerollTriggered = false;
+            var postrollTriggered = false;
+            var midrollRequested = false;
+            var midrollInterval = 1 * 60; // 5 minutes
+            var lastMidrollTime = 0; // The time when the last mid-roll ad was played
+
+            if (!prerollTriggered) {
+                player.ima({
+                    adTagUrl: vastTagPreroll,
+                    showControlsForAds: true,
+                    debug: false,
+                });
+            } else {
+                player.ima({
+                    adTagUrl: '',
+                    showControlsForAds: true,
+                    debug: false,
+                });
+            }
+            console.log("IMA settings configured");
+
+            player.ima.initializeAdDisplayContainer();
+            console.log("IMA ad display container initialized");
+
+            function requestMidrollAd() {
+                midrollRequested = true;
+                player.ima.changeAdTag(vastTagMidroll);
+                player.ima.requestAds();
+            }
+
+            player.on("timeupdate", function () {
+                var currentTime = player.currentTime();
+                console.log("Current time:", currentTime);
+                var timeSinceLastMidroll = currentTime - lastMidrollTime;
+
+                if (timeSinceLastMidroll >= midrollInterval && !midrollRequested) {
+                    lastMidrollTime = currentTime; // Update the last mid-roll ad time
+                    console.log("Midroll triggered");
+                    requestMidrollAd();
+                }
+            });
+
+            player.on("ended", function () {
+                console.log("Video ended");
+                if (!postrollTriggered) {
+                    postrollTriggered = true;
+                    console.log("Postroll triggered");
+
+                    player.ima.requestAds({
+                        adTagUrl: vastTagPostroll,
+                    });
+
+                    console.log("Postroll ads requested");
+                }
+            });
+
+            player.on("adsready", function () {
+                if (midrollRequested) {
+                    console.log("Ads ready - midroll");
+                } else {
+                    console.log("Ads ready - preroll");
+                    // player.src(
+                    //     "path/to/your/video.mp4"
+                    // );
+                }
+            });
+
+            player.on("aderror", function () {
+                console.log("Ads aderror");
+                player.play();
+            });
+
+            player.on("adend", function () {
+                if (lastMidrollTime > 0) {
+                    console.log("A midroll ad has finished playing.");
+                    midrollRequested = false;
+                } else {
+                    console.log("The preroll ad has finished playing.");
+                    prerollTriggered = true;
+                }
+                player.play();
+            });
+        });
+    </script>
 </body>
 
 </html>
