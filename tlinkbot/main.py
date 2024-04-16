@@ -83,8 +83,8 @@ def loopthread(message, otherss=False):
                             print("Video downloaded and saved successfully!")
 
                         # Add video info to MongoDB
-                        try:
                             videoId = generate_random_hex(24)
+                        try:
                             video_info = {
                                 "filename": filename,
                                 "fileLocalPath": f'uploads/{filename}',
