@@ -4,7 +4,7 @@ import os
 import pymongo
 from pymongo import MongoClient
 import secrets
-from selenium import webdriver
+import subprocess
 
 
 
@@ -36,27 +36,16 @@ def generate_random_hex(length):
     random_hex = "".join(secrets.choice(characters) for _ in range(length))
     return random_hex
 
-# Define a function to download and save the video
-def download_video(url, filename):
-    response = requests.get(url)
-    with open(filename, 'wb') as f:
-        f.write(response.content)
-
 
 # Define a function to download and save the video
 def download_video(url):
     filename = os.path.join(download_folder, f"{generate_random_hex(24)}.mp4")
     
-    # Use headless browser to access the link and trigger download
-    options = webdriver.ChromeOptions()
-    options.add_argument('--headless')
-    options.add_argument('--disable-gpu')
-    driver = webdriver.Chrome(executable_path='/path/to/chromedriver', options=options) # Change path to chromedriver
-    driver.get(url)
-    driver.quit()
-    
-    # Wait for download to complete
-    # You may need to implement some mechanism to wait for download to complete
+    # Use wget to download the video file
+    try:
+        subprocess.run(["wget", "-O", filename, url], check=True)
+    except subprocess.CalledProcessError as e:
+        raise Exception(f"Error downloading video file: {e}")
     
     # Check if the file has been downloaded
     if os.path.isfile(filename):
@@ -100,6 +89,7 @@ def handle_message(client, message):
         except Exception as e:
             # Reply to the user if an error occurs during download
             message.reply_text(f"An error occurred: {e}")
+
 
 
 
