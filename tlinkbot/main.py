@@ -22,7 +22,7 @@ import secrets
 # Connect to MongoDB
 client = MongoClient('mongodb+srv://kamleshSoni:TLbtEzobixLJc3wi@nutcracker.hrrsybj.mongodb.net/?retryWrites=true&w=majority&appName=nutCracker')
 db = client['nutCracker']  # Replace 'your_database_name' with your actual database name
-video_collection = db['videoRecord']
+video_collection = db['videosRecord']
 
 with open('config.json', 'r') as f: DATA = load(f)
 def getenv(var): return environ.get(var) or DATA.get(var, None)
