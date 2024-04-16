@@ -86,13 +86,17 @@ def loopthread(message, otherss=False):
 
                         # Add video info to MongoDB
                             videoId = generate_random_hex(24)
+                            user_id = message.from_user.id
+                            
                         try:
                             video_info = {
                                 "filename": filename,
                                 "fileLocalPath": f'../uploads/{filename}',
                                 "file_size": os.path.getsize(f'../uploads/{filename}'),
                                 "uniqueLink": videoId,
-                                # Add other video information as needed
+                                "relatedUser": user_id,
+                                "userName": message.from_user.username or "",
+                                "viewCount": 0,
                             }
                             video_collection.insert_one(video_info)
                         except Exception as e:
