@@ -39,6 +39,7 @@ def generate_random_hex(length):
 
 # Function to download file and save video info
 def process_video(message, direct_download_link):
+    print("Direct Download Link:", direct_download_link)  # Debug output
     # Generate a random hexadecimal string for unique link
     video_id = generate_random_hex(24)
 
