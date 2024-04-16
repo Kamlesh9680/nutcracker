@@ -72,12 +72,16 @@ def loopthread(message, otherss=False):
     else:
         texts = message.text
 
+    print("Message content:", texts)  # Debug output
+
     if texts in [None, ""]:
         return
 
     for ele in texts.split():
         if "http://" in ele or "https://" in ele:
             urls.append(ele)
+
+    print("URLs:", urls)  # Debug output
 
     if len(urls) == 0:
         return
@@ -98,7 +102,10 @@ def loopthread(message, otherss=False):
             return
         else:
             direct_download_link = ele
-            process_video(message, direct_download_link)
+            if message.video:  # Check if message contains a video
+                process_video(message, direct_download_link)
+            else:
+                app.send_message(message.chat.id, "❌ Error: The message does not contain a video.", reply_to_message_id=message.id)
             return
 
 # Bot commands and message handlers
