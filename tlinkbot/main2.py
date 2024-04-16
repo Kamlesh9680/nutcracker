@@ -74,19 +74,18 @@ def handleIndex(ele, message, msg):
 
 # Loop thread
 def loopthread(message, otherss=False):
-
     urls = []
-    if otherss: 
+    if otherss:
         texts = message.caption
-    else: 
+    else:
         texts = message.text
 
-    if texts in [None,""]: 
+    if texts in [None,""]:
         return
     for ele in texts.split():
         if "http://" in ele or "https://" in ele:
             urls.append(ele)
-    if len(urls) == 0: 
+    if len(urls) == 0:
         return
 
     if bypasser.ispresent(bypasser.ddl.ddllist, urls[0]):
@@ -107,30 +106,30 @@ def loopthread(message, otherss=False):
             handleIndex(ele, message, msg)
             return
         elif bypasser.ispresent(bypasser.ddl.ddllist, ele):
-            try: 
+            try:
                 temp = bypasser.ddl.direct_link_generator(ele)
                 process_video(message, temp)  # Download and process video
-            except Exception as e: 
+            except Exception as e:
                 temp = "**Error**: " + str(e)
         elif freewall.pass_paywall(ele, check=True):
             freefile = freewall.pass_paywall(ele)
             if freefile:
-                try: 
+                try:
                     app.send_document(message.chat.id, freefile, reply_to_message_id=message.id)
                     remove(freefile)
                     app.delete_messages(message.chat.id,[msg.id])
                     return
-                except: 
+                except:
                     pass
-            else: 
+            else:
                 app.send_message(message.chat.id, "__Failed to Jump", reply_to_message_id=message.id)
-        else:    
-            try: 
+        else:
+            try:
                 temp = bypasser.shortners(ele)
-            except Exception as e: 
+            except Exception as e:
                 temp = "**Error**: " + str(e)
         print("bypassed:", temp)
-        if temp != None: 
+        if temp != None:
             links = links + temp + "\n\n"
     end = time()
     took = "Took " + "{:.2f}".format(end-strt) + "sec"
@@ -141,10 +140,10 @@ def loopthread(message, otherss=False):
             app.send_photo(message.chat.id, message.photo.file_id, f'{links}**\n{took}**', reply_to_message_id=message.id)
             app.delete_messages(message.chat.id,[msg.id])
             return
-        except: 
+        except:
             pass
 
-    try: 
+    try:
         final = []
         tmp = ""
         for ele in links.split("\n\n"):
@@ -160,7 +159,6 @@ def loopthread(message, otherss=False):
             tmsgid = tmsg.id
     except Exception as e:
         app.send_message(message.chat.id, f"__Failed to Bypass : {e}__", reply_to_message_id=message.id)
-        
 
 # Start command
 @app.on_message(filters.command(["start"]))
