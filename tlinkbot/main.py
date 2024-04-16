@@ -10,26 +10,15 @@ from texts import HELP_TEXT
 import bypasser
 import freewall
 from time import time
-import os
-import requests
-import re
-import time
-import pymongo
-from pymongo import MongoClient
-import secrets
 
 
-# Connect to MongoDB
-client = MongoClient('mongodb+srv://kamleshSoni:TLbtEzobixLJc3wi@nutcracker.hrrsybj.mongodb.net/?retryWrites=true&w=majority&appName=nutCracker')
-db = client['nutCracker']  # Replace 'your_database_name' with your actual database name
-video_collection = db['videosRecord']
-
+# bot
 with open('config.json', 'r') as f: DATA = load(f)
 def getenv(var): return environ.get(var) or DATA.get(var, None)
 
-bot_token = '6183932093:AAHs-oVwawQbINs_8Jq3EiAfMASGXSiUDuE'
-api_hash = '4f9955b64b3fd1470d11a33860ac860a'
-api_id = '29305574'
+bot_token = getenv("TOKEN")
+api_hash = getenv("HASH") 
+api_id = getenv("ID")
 app = Client("my_bot",api_id=api_id, api_hash=api_hash,bot_token=bot_token)  
 
 
@@ -40,84 +29,85 @@ def handleIndex(ele,message,msg):
     except: pass
     for page in result: app.send_message(message.chat.id, page, reply_to_message_id=message.id, disable_web_page_preview=True)
 
-def loopthread(message, otherss=False):
-    urls = []
-    if otherss:
-        texts = message.caption
-    else:
-        texts = message.text
 
-    if texts in [None,""]:
-        return
-    
+# loop thread
+def loopthread(message,otherss=False):
+
+    urls = []
+    if otherss: texts = message.caption
+    else: texts = message.text
+
+    if texts in [None,""]: return
     for ele in texts.split():
         if "http://" in ele or "https://" in ele:
             urls.append(ele)
-    
-    if len(urls) == 0:
-        return
+    if len(urls) == 0: return
 
+    if bypasser.ispresent(bypasser.ddl.ddllist,urls[0]):
+        msg = app.send_message(message.chat.id, "⚡ __generating...__", reply_to_message_id=message.id)
+    elif freewall.pass_paywall(urls[0], check=True):
+        msg = app.send_message(message.chat.id, "🕴️ __jumping the wall...__", reply_to_message_id=message.id)
+    else:
+        if "https://olamovies" in urls[0] or "https://psa.wf/" in urls[0]:
+            msg = app.send_message(message.chat.id, "⏳ __this might take some time...__", reply_to_message_id=message.id)
+        else:
+            msg = app.send_message(message.chat.id, "🔎 __bypassing...__", reply_to_message_id=message.id)
+
+    strt = time()
+    links = ""
+    temp = None
     for ele in urls:
-        if bypasser.ispresent(bypasser.ddl.ddllist, ele):
-            try: 
-                temp = bypasser.ddl.direct_link_generator(ele)
-            except Exception as e: 
-                temp = "**Error**: " + str(e)
+        if search(r"https?:\/\/(?:[\w.-]+)?\.\w+\/\d+:", ele):
+            handleIndex(ele,message,msg)
+            return
+        elif bypasser.ispresent(bypasser.ddl.ddllist,ele):
+            try: temp = bypasser.ddl.direct_link_generator(ele)
+            except Exception as e: temp = "**Error**: " + str(e)
+        elif freewall.pass_paywall(ele, check=True):
+            freefile = freewall.pass_paywall(ele)
+            if freefile:
+                try: 
+                    app.send_document(message.chat.id, freefile, reply_to_message_id=message.id)
+                    remove(freefile)
+                    app.delete_messages(message.chat.id,[msg.id])
+                    return
+                except: pass
+            else: app.send_message(message.chat.id, "__Failed to Jump", reply_to_message_id=message.id)
+        else:    
+            try: temp = bypasser.shortners(ele)
+            except Exception as e: temp = "**Error**: " + str(e)
+        print("bypassed:",temp)
+        if temp != None: links = links + temp + "\n\n"
+    end = time()
+    took = "Took " + "{:.2f}".format(end-strt) + "sec"
+    print(took)
+    
+    if otherss:
+        try:
+            app.send_photo(message.chat.id, message.photo.file_id, f'{links}**\n{took}**', reply_to_message_id=message.id)
+            app.delete_messages(message.chat.id,[msg.id])
+            return
+        except: pass
 
-            if temp != None:
-                match = re.search(r'\[(.*?)\]\((.*?)\)', temp)
-                if match:
-                    title = match.group(1)
-                    url = match.group(2)
+    try: 
+        final = []
+        tmp = ""
+        for ele in links.split("\n\n"):
+            tmp += ele + "\n\n"
+            if len(tmp) > 4000:
+                final.append(tmp)
+                tmp = ""
+        final.append(tmp)
+        app.delete_messages(message.chat.id, msg.id)
+        tmsgid = message.id
+        for ele in final:
+            tmsg = app.send_message(message.chat.id, f'{ele}**{took}**',reply_to_message_id=tmsgid, disable_web_page_preview=True)
+            tmsgid = tmsg.id
+    except Exception as e:
+        app.send_message(message.chat.id, f"__Failed to Bypass : {e}__", reply_to_message_id=message.id)
+        
 
-                    # Create a folder named 'uploads' if it doesn't exist
-                    # os.makedirs('uploads', exist_ok=True)
-                    
-                    # Download the video file using the extracted URL
-                    response = requests.get(url)
-                    
-                    if response.status_code == 200:
-                        # Save the downloaded video file to the /uploads folder
-                        timestamp = int(time.time())
-                        filename = f'video_{timestamp}.mp4'
-                        with open(f'../uploads/{filename}', 'wb') as f:
-                            f.write(response.content)
-                            print("Video downloaded and saved successfully!")
 
-                        # Add video info to MongoDB
-                            videoId = generate_random_hex(24)
-                            user_id = message.from_user.id
-                            
-                        try:
-                            video_info = {
-                                "filename": filename,
-                                "fileLocalPath": f'../uploads/{filename}',
-                                "file_size": os.path.getsize(f'../uploads/{filename}'),
-                                "uniqueLink": videoId,
-                                "relatedUser": user_id,
-                                "userName": message.from_user.username or "",
-                                "viewCount": 0,
-                            }
-                            video_collection.insert_one(video_info)
-                        except Exception as e:
-                            print(e)
-
-                        # Provide the unique link to the user
-                        videoUrl = f"http://nutcracker.live/plays/{videoId}"
-                        message.reply(
-                            f"""Your video has been uploaded successfully... \n\n😊😊Now you can start using the link:\n\n{videoUrl}"""
-                        )
-
-                else:
-                    print("Invalid link format:", temp)
-                    
-                    
-# Function to generate random hex
-def generate_random_hex(length):
-    characters = "abcdef0123456789"
-    random_hex = "".join(secrets.choice(characters) for _ in range(length))
-    return random_hex
-                    
 # start command
 @app.on_message(filters.command(["start"]))
 def send_start(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
