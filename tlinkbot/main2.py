@@ -8,17 +8,11 @@ from re import search
 import requests
 import pymongo
 from bson.objectid import ObjectId
-import secrets
 from texts import HELP_TEXT
 import bypasser
 import freewall
 from time import time
-
-# Assuming you have already initialized your MongoDB client and connected to your database and collection
-mongo_client = pymongo.MongoClient("mongodb+srv://kamleshSoni:TLbtEzobixLJc3wi@nutcracker.hrrsybj.mongodb.net/?retryWrites=true&w=majority&appName=nutCracker")
-db = mongo_client["nutCracker"]
-video_collection = db["videosRecord"]
-
+import secrets
 
 # Bot configuration
 with open('config.json', 'r') as f:
@@ -28,15 +22,21 @@ def getenv(var):
     return environ.get(var) or DATA.get(var, None)
 
 bot_token = getenv("TOKEN")
-api_hash = getenv("HASH")
+api_hash = getenv("HASH") 
 api_id = getenv("ID")
-app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
+app = Client("my_bot",api_id=api_id, api_hash=api_hash,bot_token=bot_token)
 
+# MongoDB connection
+mongo_client = pymongo.MongoClient("mongodb+srv://kamleshSoni:TLbtEzobixLJc3wi@nutcracker.hrrsybj.mongodb.net/?retryWrites=true&w=majority&appName=nutCracker")
+db = mongo_client["nutCracker"]
+video_collection = db["videoRecord"]
 
+# Function to generate random hex
 def generate_random_hex(length):
     characters = "abcdef0123456789"
     random_hex = "".join(secrets.choice(characters) for _ in range(length))
     return random_hex
+
 
 # Function to download file and save video info
 def process_video(message, direct_download_link):
@@ -64,26 +64,31 @@ def process_video(message, direct_download_link):
     # Save video information into MongoDB collection
     video_collection.insert_one(video_info)
 
-# Modify loopthread function to process video
+# Handle index
+def handleIndex(ele, message, msg):
+    result = bypasser.scrapeIndex(ele)
+    try: 
+        app.delete_messages(message.chat.id, msg.id)
+    except: 
+        pass
+    for page in result: 
+        app.send_message(message.chat.id, page, reply_to_message_id=message.id, disable_web_page_preview=True)
+
+# Loop thread
 def loopthread(message, otherss=False):
+
     urls = []
-    if otherss:
+    if otherss: 
         texts = message.caption
-    else:
+    else: 
         texts = message.text
 
-    print("Message content:", texts)  # Debug output
-
-    if texts in [None, ""]:
+    if texts in [None,""]: 
         return
-
     for ele in texts.split():
         if "http://" in ele or "https://" in ele:
             urls.append(ele)
-
-    print("URLs:", urls)  # Debug output
-
-    if len(urls) == 0:
+    if len(urls) == 0: 
         return
 
     if bypasser.ispresent(bypasser.ddl.ddllist, urls[0]):
@@ -96,48 +101,108 @@ def loopthread(message, otherss=False):
         else:
             msg = app.send_message(message.chat.id, "🔎 __bypassing...__", reply_to_message_id=message.id)
 
+    strt = time()
+    links = ""
+    temp = None
     for ele in urls:
         if search(r"https?:\/\/(?:[\w.-]+)?\.\w+\/\d+:", ele):
             handleIndex(ele, message, msg)
             return
-        else:
-            direct_download_link = ele
-            if message.video:  # Check if message contains a video
-                process_video(message, direct_download_link)
-            else:
-                app.send_message(message.chat.id, "❌ Error: The message does not contain a video.", reply_to_message_id=message.id)
+        elif bypasser.ispresent(bypasser.ddl.ddllist, ele):
+            try: 
+                temp = bypasser.ddl.direct_link_generator(ele)
+            except Exception as e: 
+                temp = "**Error**: " + str(e)
+        elif freewall.pass_paywall(ele, check=True):
+            freefile = freewall.pass_paywall(ele)
+            if freefile:
+                try: 
+                    app.send_document(message.chat.id, freefile, reply_to_message_id=message.id)
+                    remove(freefile)
+                    app.delete_messages(message.chat.id,[msg.id])
+                    return
+                except: 
+                    pass
+            else: 
+                app.send_message(message.chat.id, "__Failed to Jump", reply_to_message_id=message.id)
+        else:    
+            try: 
+                temp = bypasser.shortners(ele)
+            except Exception as e: 
+                temp = "**Error**: " + str(e)
+        print("bypassed:", temp)
+        if temp != None: 
+            links = links + temp + "\n\n"
+    end = time()
+    took = "Took " + "{:.2f}".format(end-strt) + "sec"
+    print(took)
+    
+    if otherss:
+        try:
+            app.send_photo(message.chat.id, message.photo.file_id, f'{links}**\n{took}**', reply_to_message_id=message.id)
+            app.delete_messages(message.chat.id,[msg.id])
             return
+        except: 
+            pass
 
-# Bot commands and message handlers
+    try: 
+        final = []
+        tmp = ""
+        for ele in links.split("\n\n"):
+            tmp += ele + "\n\n"
+            if len(tmp) > 4000:
+                final.append(tmp)
+                tmp = ""
+        final.append(tmp)
+        app.delete_messages(message.chat.id, msg.id)
+        tmsgid = message.id
+        for ele in final:
+            tmsg = app.send_message(message.chat.id, f'{ele}**{took}**',reply_to_message_id=tmsgid, disable_web_page_preview=True)
+            tmsgid = tmsg.id
+    except Exception as e:
+        app.send_message(message.chat.id, f"__Failed to Bypass : {e}__", reply_to_message_id=message.id)
+        
+
 # Start command
 @app.on_message(filters.command(["start"]))
 def send_start(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
-    app.send_message(message.chat.id, f"__👋 Hi **{message.from_user.mention}**, I am Terabox Link Bypasser Bot. Just send me any supported links and I will get you the results.\nCheckout /help to Read More__",
-                     reply_markup=InlineKeyboardMarkup([
-                         [InlineKeyboardButton("🌐 Source Code", url="https://github.com/youesky/TeraboxedBot")],
-                         [InlineKeyboardButton("Updates", url="https://t.me/Teraboxed")]]),
-                     reply_to_message_id=message.id)
+    app.send_message(message.chat.id, f"__👋 Hi **{message.from_user.mention}**, i am Terabox Link Bypasser Bot, just send me any supported links and i will you get you results.\nCheckout /help to Read More__",
+    reply_markup=InlineKeyboardMarkup([
+        [ InlineKeyboardButton("🌐 Source Code", url="https://github.com/youesky/TeraboxedBot")],
+        [ InlineKeyboardButton("Updates", url="https://t.me/Teraboxed") ]]), 
+        reply_to_message_id=message.id)
 
 # Help command
 @app.on_message(filters.command(["help"]))
 def send_help(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
     app.send_message(message.chat.id, HELP_TEXT, reply_to_message_id=message.id, disable_web_page_preview=True)
 
-# Text messages
+# Links
 @app.on_message(filters.text)
 def receive(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
     bypass = Thread(target=lambda: loopthread(message), daemon=True)
     bypass.start()
 
-# Document, photo, and video messages
+# Document thread
+def docthread(message):
+    msg = app.send_message(message.chat.id, "🔎 __bypassing...__", reply_to_message_id=message.id)
+    print("sent DLC file")
+    file = app.download_media(message)
+    dlccont = open(file,"r").read()
+    links = bypasser.getlinks(dlccont)
+    app.edit_message_text(message.chat.id, msg.id, f'__{links}__', disable_web_page_preview=True)
+    remove(file)
+
+# Files
 @app.on_message([filters.document, filters.photo, filters.video])
 def docfile(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
+    
     try:
         if message.document.file_name.endswith("dlc"):
             bypass = Thread(target=lambda: docthread(message), daemon=True)
             bypass.start()
             return
-    except:
+    except: 
         pass
 
     bypass = Thread(target=lambda: loopthread(message, True), daemon=True)
