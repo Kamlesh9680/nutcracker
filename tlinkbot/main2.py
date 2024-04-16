@@ -18,7 +18,7 @@ def start(client, message):
     message.reply_text('Hello! Send me a video link and I will download it for you.')
 
 # Handler for text messages containing video links
-@app.on_message(~filters.command & filters.text)
+@app.on_message(filters.command & filters.text)
 def handle_video_link(client, message):
     link = message.text
     # Assuming you have a function to extract direct download links
