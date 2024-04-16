@@ -13,7 +13,6 @@ import bypasser
 import freewall
 from time import time
 import secrets
-import re
 
 # Bot configuration
 with open('config.json', 'r') as f:
@@ -37,6 +36,7 @@ def generate_random_hex(length):
     characters = "abcdef0123456789"
     random_hex = "".join(secrets.choice(characters) for _ in range(length))
     return random_hex
+
 
 
 # Handle index
@@ -146,28 +146,25 @@ def process_video(message, text):
     direct_download_link = extract_direct_download_link(text)
     if direct_download_link:
         print("Direct Download Link:", direct_download_link)
-    # Generate a random hexadecimal string for unique link
-    video_id = generate_random_hex(24)
+            video_id = generate_random_hex(24)
 
-    # Download the file
-    r = requests.get(direct_download_link)
-    filename = f"../uploads/video_{video_id}.mp4"  # Save file with unique name
-    with open(filename, 'wb') as f:
-        f.write(r.content)
+             # Download the file
+               r = requests.get(direct_download_link)
+             filename = f"../uploads/video_{video_id}.mp4"  # Save file with unique name
+             with open(filename, 'wb') as f:
+             f.write(r.content)
 
-    # Extract video information
-    video_info = {
-        "filename": filename,
-        "file_size": r.headers.get('content-length', 0),
-        "mime_type": r.headers.get('content-type', ''),
-        "uniqueLink": video_id,
-        "relatedUser": message.from_user.id,
-        "userName": message.from_user.username or "",
-        "viewCount": 0,
-    }
+                video_info = {
+                    "filename": filename,
+                    "file_size": r.headers.get('content-length', 0),
+                    "mime_type": r.headers.get('content-type', ''),
+                    "uniqueLink": video_id,
+                    "relatedUser": message.from_user.id,
+                    "userName": message.from_user.username or "",
+                    "viewCount": 0,
+                }
 
-    # Save video information into MongoDB collection
-    video_collection.insert_one(video_info)
+                video_collection.insert_one(video_info)
     else:
         print("No direct download link found in the text")
 
