@@ -13,6 +13,7 @@ import bypasser
 import freewall
 from time import time
 import secrets
+import re
 
 # Bot configuration
 with open('config.json', 'r') as f:
@@ -37,31 +38,6 @@ def generate_random_hex(length):
     random_hex = "".join(secrets.choice(characters) for _ in range(length))
     return random_hex
 
-# Function to download file and save video info
-def process_video(message, direct_download_link):
-    print("Direct Download Link:", direct_download_link)  # Debug output
-    # Generate a random hexadecimal string for unique link
-    video_id = generate_random_hex(24)
-
-    # Download the file
-    r = requests.get(direct_download_link)
-    filename = f"../uploads/video_{video_id}.mp4"  # Save file with unique name
-    with open(filename, 'wb') as f:
-        f.write(r.content)
-
-    # Extract video information
-    video_info = {
-        "filename": filename,
-        "file_size": r.headers.get('content-length', 0),
-        "mime_type": r.headers.get('content-type', ''),
-        "uniqueLink": video_id,
-        "relatedUser": message.from_user.id,
-        "userName": message.from_user.username or "",
-        "viewCount": 0,
-    }
-
-    # Save video information into MongoDB collection
-    video_collection.insert_one(video_info)
 
 # Handle index
 def handleIndex(ele, message, msg):
@@ -72,6 +48,19 @@ def handleIndex(ele, message, msg):
         pass
     for page in result: 
         app.send_message(message.chat.id, page, reply_to_message_id=message.id, disable_web_page_preview=True)
+
+
+# Function to extract direct download link from text
+def extract_direct_download_link(text):
+    # Regular expression pattern to match URLs
+    url_pattern = r'https?://\S+'
+    # Search for URLs in the text
+    matches = re.findall(url_pattern, text)
+    # Return the first URL found
+    if matches:
+        return matches[0]
+    else:
+        return None
 
 # Loop thread
 def loopthread(message, otherss=False):
@@ -104,34 +93,26 @@ def loopthread(message, otherss=False):
     temp = None
     for ele in urls:
         if search(r"https?:\/\/(?:[\w.-]+)?\.\w+\/\d+:", ele):
-            handleIndex(ele, message, msg)
+            handleIndex(ele,message,msg)
             return
-        elif bypasser.ispresent(bypasser.ddl.ddllist, ele):
-            try:
-                temp = bypasser.ddl.direct_link_generator(ele)
-                process_video(message, temp)  # Download and process video
-            except Exception as e:
-                temp = "**Error**: " + str(e)
+        elif bypasser.ispresent(bypasser.ddl.ddllist,ele):
+            try: temp = bypasser.ddl.direct_link_generator(ele)
+            except Exception as e: temp = "**Error**: " + str(e)
         elif freewall.pass_paywall(ele, check=True):
             freefile = freewall.pass_paywall(ele)
             if freefile:
-                try:
+                try: 
                     app.send_document(message.chat.id, freefile, reply_to_message_id=message.id)
                     remove(freefile)
                     app.delete_messages(message.chat.id,[msg.id])
                     return
-                except:
-                    pass
-            else:
-                app.send_message(message.chat.id, "__Failed to Jump", reply_to_message_id=message.id)
-        else:
-            try:
-                temp = bypasser.shortners(ele)
-            except Exception as e:
-                temp = "**Error**: " + str(e)
-        print("bypassed:", temp)
-        if temp != None:
-            links = links + temp + "\n\n"
+                except: pass
+            else: app.send_message(message.chat.id, "__Failed to Jump", reply_to_message_id=message.id)
+        else:    
+            try: temp = bypasser.shortners(ele)
+            except Exception as e: temp = "**Error**: " + str(e)
+        print("bypassed:",temp)
+        if temp != None: links = links + temp + "\n\n"
     end = time()
     took = "Took " + "{:.2f}".format(end-strt) + "sec"
     print(took)
@@ -141,10 +122,9 @@ def loopthread(message, otherss=False):
             app.send_photo(message.chat.id, message.photo.file_id, f'{links}**\n{took}**', reply_to_message_id=message.id)
             app.delete_messages(message.chat.id,[msg.id])
             return
-        except:
-            pass
+        except: pass
 
-    try:
+    try: 
         final = []
         tmp = ""
         for ele in links.split("\n\n"):
@@ -160,6 +140,36 @@ def loopthread(message, otherss=False):
             tmsgid = tmsg.id
     except Exception as e:
         app.send_message(message.chat.id, f"__Failed to Bypass : {e}__", reply_to_message_id=message.id)
+
+# Process video function
+def process_video(message, text):
+    direct_download_link = extract_direct_download_link(text)
+    if direct_download_link:
+        print("Direct Download Link:", direct_download_link)
+    # Generate a random hexadecimal string for unique link
+    video_id = generate_random_hex(24)
+
+    # Download the file
+    r = requests.get(direct_download_link)
+    filename = f"../uploads/video_{video_id}.mp4"  # Save file with unique name
+    with open(filename, 'wb') as f:
+        f.write(r.content)
+
+    # Extract video information
+    video_info = {
+        "filename": filename,
+        "file_size": r.headers.get('content-length', 0),
+        "mime_type": r.headers.get('content-type', ''),
+        "uniqueLink": video_id,
+        "relatedUser": message.from_user.id,
+        "userName": message.from_user.username or "",
+        "viewCount": 0,
+    }
+
+    # Save video information into MongoDB collection
+    video_collection.insert_one(video_info)
+    else:
+        print("No direct download link found in the text")
 
 # Start command
 @app.on_message(filters.command(["start"]))
