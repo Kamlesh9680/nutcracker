@@ -4,6 +4,8 @@ import os
 import pymongo
 from pymongo import MongoClient
 import secrets
+from selenium import webdriver
+
 
 
 client = MongoClient('mongodb+srv://kamleshSoni:TLbtEzobixLJc3wi@nutcracker.hrrsybj.mongodb.net/?retryWrites=true&w=majority&appName=nutCracker')
@@ -41,20 +43,29 @@ def download_video(url, filename):
         f.write(response.content)
 
 
+# Define a function to download and save the video
 def download_video(url):
-    response = requests.head(url)
-    content_length = int(response.headers.get('Content-Length', 0))
-    if content_length > 0:
-        filename = os.path.join(download_folder, f"{generate_random_hex(24)}.mp4")
-        with open(filename, 'wb') as f:
-            video_response = requests.get(url)
-            f.write(video_response.content)
+    filename = os.path.join(download_folder, f"{generate_random_hex(24)}.mp4")
+    
+    # Use headless browser to access the link and trigger download
+    options = webdriver.ChromeOptions()
+    options.add_argument('--headless')
+    options.add_argument('--disable-gpu')
+    driver = webdriver.Chrome(executable_path='/path/to/chromedriver', options=options) # Change path to chromedriver
+    driver.get(url)
+    driver.quit()
+    
+    # Wait for download to complete
+    # You may need to implement some mechanism to wait for download to complete
+    
+    # Check if the file has been downloaded
+    if os.path.isfile(filename):
         return filename
     else:
         raise Exception("Downloaded video file is empty")
 
 
-
+# Define a message handler to handle messages containing direct download links
 @app.on_message(filters.private & filters.text)
 def handle_message(client, message):
     # Check if the message contains a direct download link
@@ -62,10 +73,6 @@ def handle_message(client, message):
         try:
             # Download the video from the direct download link
             video_file = download_video(message.text)
-            
-            # Check if the video file is empty
-            if os.path.getsize(video_file) == 0:
-                raise Exception("Downloaded video file is empty")
             
             # Generate a unique ID for the video
             video_id = generate_random_hex(24)
@@ -93,7 +100,6 @@ def handle_message(client, message):
         except Exception as e:
             # Reply to the user if an error occurs during download
             message.reply_text(f"An error occurred: {e}")
-
 
 
 
