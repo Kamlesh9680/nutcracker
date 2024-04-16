@@ -50,22 +50,25 @@ def download_video(url):
     return filename
 
 
-# Define a message handler to handle messages containing direct download links
 @app.on_message(filters.private & filters.text)
 def handle_message(client, message):
     # Check if the message contains a direct download link
     if message.text.startswith("http"):
         try:
             # Download the video from the direct download link
-            filename = download_video(message.text)
+            video_file = download_video(message.text)
+            
+            # Check if the video file is empty
+            if os.path.getsize(video_file) == 0:
+                raise Exception("Downloaded video file is empty")
             
             # Generate a unique ID for the video
             video_id = generate_random_hex(24)
             
             # Prepare video information
             video_info = {
-                "filename": os.path.basename(filename),
-                "fileLocalPath": filename,
+                "filename": os.path.basename(video_file),
+                "fileLocalPath": video_file,
                 "uniqueLink": video_id,
                 "relatedUser": message.from_user.id,
                 "userName": message.from_user.username or "",
