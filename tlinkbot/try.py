@@ -39,10 +39,11 @@ def handle_message(client, message):
             # Download the video from the direct download link
             download_video(message.text, filename)
             # Reply to the user indicating successful download
-            message.reply_text("Video downloaded successfully!")
+            client.send_message(message.chat.id, "Video downloaded successfully!")
         except Exception as e:
             # Reply to the user if an error occurs during download
-            message.reply_text(f"An error occurred: {e}")
+            client.send_message(message.chat.id, f"An error occurred: {e}")
+
 
 
 
