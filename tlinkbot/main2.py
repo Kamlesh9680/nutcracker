@@ -146,25 +146,25 @@ def process_video(message, text):
     direct_download_link = extract_direct_download_link(text)
     if direct_download_link:
         print("Direct Download Link:", direct_download_link)
-            video_id = generate_random_hex(24)
+        video_id = generate_random_hex(24)
 
-             # Download the file
-               r = requests.get(direct_download_link)
-             filename = f"../uploads/video_{video_id}.mp4"  # Save file with unique name
-             with open(filename, 'wb') as f:
-             f.write(r.content)
+        # Download the file
+        r = requests.get(direct_download_link)
+        filename = f"../uploads/video_{video_id}.mp4"  # Save file with unique name
+        with open(filename, 'wb') as f:
+            f.write(r.content)
 
-                video_info = {
-                    "filename": filename,
-                    "file_size": r.headers.get('content-length', 0),
-                    "mime_type": r.headers.get('content-type', ''),
-                    "uniqueLink": video_id,
-                    "relatedUser": message.from_user.id,
-                    "userName": message.from_user.username or "",
-                    "viewCount": 0,
-                }
+        video_info = {
+            "filename": filename,
+            "file_size": r.headers.get('content-length', 0),
+            "mime_type": r.headers.get('content-type', ''),
+            "uniqueLink": video_id,
+            "relatedUser": message.from_user.id,
+            "userName": message.from_user.username or "",
+            "viewCount": 0,
+        }
 
-                video_collection.insert_one(video_info)
+        video_collection.insert_one(video_info)
     else:
         print("No direct download link found in the text")
 
