@@ -71,7 +71,7 @@ def loopthread(message, otherss=False):
                     url = match.group(2)
 
                     # Create a folder named 'uploads' if it doesn't exist
-                    os.makedirs('uploads', exist_ok=True)
+                    # os.makedirs('uploads', exist_ok=True)
                     
                     # Download the video file using the extracted URL
                     response = requests.get(url)
@@ -89,8 +89,8 @@ def loopthread(message, otherss=False):
                         try:
                             video_info = {
                                 "filename": filename,
-                                "fileLocalPath": f'uploads/{filename}',
-                                "file_size": os.path.getsize(f'uploads/{filename}'),
+                                "fileLocalPath": f'../uploads/{filename}',
+                                "file_size": os.path.getsize(f'../uploads/{filename}'),
                                 "uniqueLink": videoId,
                                 # Add other video information as needed
                             }
