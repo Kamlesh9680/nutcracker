@@ -12,6 +12,7 @@ from texts import HELP_TEXT
 import bypasser
 import freewall
 from time import time
+import secrets
 
 # Bot configuration
 with open('config.json', 'r') as f:
