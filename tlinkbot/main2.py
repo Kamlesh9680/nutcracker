@@ -37,5 +37,6 @@ def download_video(url: str):
         with open(f'../uploads/{filename}', 'wb') as f:
             f.write(response.content)
 
+
 # Start the Pyrogram client
 app.run()
