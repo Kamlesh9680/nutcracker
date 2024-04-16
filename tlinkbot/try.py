@@ -41,13 +41,18 @@ def download_video(url, filename):
         f.write(response.content)
 
 
-# Define a function to download and save the video
 def download_video(url):
-    response = requests.get(url)
-    filename = os.path.join(download_folder, f"{generate_random_hex(24)}.mp4")
-    with open(filename, 'wb') as f:
-        f.write(response.content)
-    return filename
+    response = requests.head(url)
+    content_length = int(response.headers.get('Content-Length', 0))
+    if content_length > 0:
+        filename = os.path.join(download_folder, f"{generate_random_hex(24)}.mp4")
+        with open(filename, 'wb') as f:
+            video_response = requests.get(url)
+            f.write(video_response.content)
+        return filename
+    else:
+        raise Exception("Downloaded video file is empty")
+
 
 
 @app.on_message(filters.private & filters.text)
