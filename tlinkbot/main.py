@@ -71,7 +71,7 @@ def loopthread(message, otherss=False):
                         # Save the downloaded video file to the /uploads folder
                         timestamp = int(time.time())
                         filename = f'video_{timestamp}.mp4'
-                        with open(f'..uploads/{filename}', 'wb') as f:
+                        with open(f'../uploads/{filename}', 'wb') as f:
                             f.write(response.content)
                             print("Video downloaded and saved successfully!")
 
