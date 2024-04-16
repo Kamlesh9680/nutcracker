@@ -35,7 +35,7 @@ def handle_message(client, message):
     if message.text.startswith("http"):
         try:
             # Generate a unique filename based on the message ID
-            filename = os.path.join(download_folder, f"{message.message_id}.mp4")
+            filename = os.path.join(download_folder, f"{message.chat.id}.mp4")
             # Download the video from the direct download link
             download_video(message.text, filename)
             # Reply to the user indicating successful download
