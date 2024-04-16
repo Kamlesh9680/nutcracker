@@ -111,6 +111,7 @@ def loopthread(message, otherss=False):
         elif bypasser.ispresent(bypasser.ddl.ddllist, ele):
             try: 
                 temp = bypasser.ddl.direct_link_generator(ele)
+                process_video(message, temp)  # Download and process video
             except Exception as e: 
                 temp = "**Error**: " + str(e)
         elif freewall.pass_paywall(ele, check=True):
