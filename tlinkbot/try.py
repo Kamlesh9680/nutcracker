@@ -14,6 +14,7 @@ download_folder = '../uploads'
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 
 
+
 # Define a command handler to handle messages containing direct download links
 @app.on_message(filters.command(["start"]))
 def start(client, message):
@@ -42,6 +43,7 @@ def handle_message(client, message):
         except Exception as e:
             # Reply to the user if an error occurs during download
             message.reply_text(f"An error occurred: {e}")
+
 
 
 # Start the bot
