@@ -36,13 +36,13 @@ CUSTOM_CAPTION = environ.get('CUSTOM_CAPTION')
 
 
 class Config(object):
-	API_ID = int(os.environ.get("API_ID", 13323016))
-	API_HASH = os.environ.get("API_HASH", "13323016")
-	BOT_TOKEN = os.environ.get("BOT_TOKEN","6144687436:AAGShuVn551CQHCWjRkdoBIteGgV0SUWxBo")
-	BOT_USERNAME = os.environ.get("BOT_USERNAME" , "MissRozy_BOT")
+	API_ID = int(os.environ.get("API_ID", 29305574))
+	API_HASH = os.environ.get("API_HASH", "4f9955b64b3fd1470d11a33860ac860a")
+	BOT_TOKEN = os.environ.get("BOT_TOKEN","6183932093:AAHs-oVwawQbINs_8Jq3EiAfMASGXSiUDuE")
+	BOT_USERNAME = os.environ.get("BOT_USERNAME" , "New_Bot")
 	DB_CHANNEL = int(os.environ.get("DB_CHANNEL", -1001772120203))
 	BOT_OWNER = int(os.environ.get("BOT_OWNER", "5965340120"))
-	DATABASE_URL = os.environ.get("DATABASE_URL","mongodb+srv://lazydeveloperr:lazydeveloperr@Cluster0.lpvunl5.mongodb.net/?retryWrites=true&w=majority")
+	DATABASE_URL = os.environ.get("DATABASE_URL","mongodb+srv://kamleshSoni:TLbtEzobixLJc3wi@nutcracker.hrrsybj.mongodb.net/?retryWrites=true&w=majority&appName=nutCracker")
 	UPDATES_CHANNEL = os.environ.get("UPDATES_CHANNEL", "-1001765107260")
 	LOG_CHANNEL = os.environ.get("LOG_CHANNEL", "-1001895607162")
 	BANNED_USERS = set(int(x) for x in os.environ.get("BANNED_USERS", "1234567890").split())
