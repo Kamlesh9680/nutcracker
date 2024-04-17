@@ -26,7 +26,7 @@ async def download_file(client, message):
     try:
         response = requests.get(url, stream=True)
         if response.status_code == 200:
-            file_name = os.path.basename(url)
+            file_name = "videommmmm.mp4"
             file_path = os.path.join(UPLOADS_DIR, file_name)
             with open(file_path, 'wb') as file:
                 for chunk in response.iter_content(chunk_size=1024):
