@@ -20,7 +20,7 @@ async def start(client, message):
     await message.reply_text('Send me a direct download link and I will download the file for you.')
 
 # Handler for direct download links
-@app.on_message(filters.text & filters.command)
+@app.on_message(filters.text)
 async def download_file(client, message):
     url = message.text
     try:
@@ -41,6 +41,9 @@ async def download_file(client, message):
         )
     except Exception as e:
         await message.reply_text('Failed to download the file.')
+
+# Run the client
+app.run()
 
 # Run the client
 app.run()
