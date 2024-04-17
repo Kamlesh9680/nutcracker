@@ -1,58 +1,72 @@
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 const fs = require('fs');
-const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid');
+const FileType = require('file-type');
+const puppeteer = require('puppeteer');
 
-// Replace 'YOUR_TELEGRAM_BOT_TOKEN' with your actual bot token
-const bot = new TelegramBot('6837630862:AAGz-RZ8UMyBwY8w79Ai7GzJqpAuOKk2__M', { polling: true });
 
-mongoose.connect('mongodb+srv://kamleshSoni:TLbtEzobixLJc3wi@nutcracker.hrrsybj.mongodb.net/?retryWrites=true&w=majority&appName=nutCracker', { useNewUrlParser: true, useUnifiedTopology: true });
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-db.once('open', () => console.log('Connected to MongoDB'));
+// Telegram bot token
+const token = '6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE';
 
-// Define schema for storing video metadata
-const videoSchema = new mongoose.Schema({
-    chatId: String,
-    fileId: String,
-    fileName: String
+// Directory to save downloaded videos
+const UPLOADS_DIR = '../uploads';
+
+// Create a bot instance
+const bot = new TelegramBot(token, { polling: true });
+
+// Function to handle the /start command
+bot.onText(/\/start/, (msg) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, 'Hello! Send me a direct download link for a video file.');
 });
 
-const Video = mongoose.model('Video', videoSchema, "test");
-
-// Listen for messages
 bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
+    const downloadLink = msg.text;
 
-    // Check if the message contains a valid video link
-    if (msg.text && msg.text.match(/(?:https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- ;,./?%&=]*)?/)) {
-        try {
-            const videoUrl = msg.text;
+    try {
+        console.log(`Downloading video from: ${downloadLink}`);
 
-            // Fetch the video file
-            const response = await axios.get(videoUrl, { responseType: 'arraybuffer' });
-            const videoBuffer = Buffer.from(response.data);
+        // Download the video using Puppeteer
+        const filepath = await downloadVideo(downloadLink);
 
-            // Save the video to the uploads directory with a unique filename
-            const fileName = `video_${chatId}_${Date.now()}.mp4`;
-            fs.writeFileSync(`../uploads/${fileName}`, videoBuffer);
-
-            // Save video metadata to MongoDB
-            const video = new Video({
-                chatId: chatId,
-                fileId: fileName,
-                fileName: fileName
-            });
-            await video.save();
-
-            // Send confirmation message with the unique link
-            const uniqueLink = `https://yourdomain.com/${fileName}`; // Replace 'yourdomain.com' with your domain
-            bot.sendMessage(chatId, `Video received and saved successfully!\nYou can view/download it from: ${uniqueLink}`);
-        } catch (error) {
-            console.error('Error processing video link:', error);
-            bot.sendMessage(chatId, 'Error processing video link.');
+        if (filepath) {
+            console.log('Video downloaded successfully and saved.');
+            bot.sendMessage(chatId, 'Video downloaded successfully and saved.');
+        } else {
+            console.error('Failed to download video.');
+            bot.sendMessage(chatId, 'Failed to download video. Please try again later.');
         }
-    } else {
-        bot.sendMessage(chatId, 'Please send a valid video link.');
+    } catch (error) {
+        console.error(`An error occurred: ${error.message}`);
+        bot.sendMessage(chatId, `An error occurred: ${error.message}`);
     }
 });
+
+// Function to download video using Puppeteer
+async function downloadVideo(url) {
+    try {
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        await page.setUserAgent('Chrome/100.0.0.0 Safari/537.36');
+        await page.goto(url);
+
+        // Simulate click action on the download link
+        //   await page.click('#download-button'); // Replace with the actual download button selector
+
+        // Wait for the download to complete (you might need to adjust this depending on the file size)
+        await page.waitForTimeout(500000); // Wait for 5 seconds
+
+        await browser.close();
+
+        const filename = `video_${Date.now()}.mp4`; // Example filename (you can use a more meaningful name)
+        const filepath = `../uploads/${filename}`; // Relative path to the uploads folder
+
+        // Return the filepath if the download is successful
+        return filepath; // Replace with the actual path where the file is saved
+    } catch (error) {
+        console.error(`Failed to download video: ${error.message}`);
+        return null;
+    }
+}
