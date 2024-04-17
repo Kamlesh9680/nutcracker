@@ -10,6 +10,8 @@ from texts import HELP_TEXT
 import bypasser
 import freewall
 from time import time
+import os
+import shutil
 
 
 # bot
