@@ -23,27 +23,27 @@ async def start(client, message):
 @app.on_message(filters.text)
 async def download_file(client, message):
     url = message.text
-    print(url)
     try:
         response = requests.get(url, stream=True)
-        file_name = os.path.basename(url)
-        print(file_name)
-        file_path = os.path.join(UPLOADS_DIR, file_name)
-        with open(file_path, 'wb') as file:
-            for chunk in response.iter_content(chunk_size=1024):
-                if chunk:
-                    file.write(chunk)
-        await message.reply_text(f'File downloaded and saved as {file_name}')
+        if response.status_code == 200:
+            file_name = os.path.basename(url)
+            file_path = os.path.join(UPLOADS_DIR, file_name)
+            with open(file_path, 'wb') as file:
+                for chunk in response.iter_content(chunk_size=1024):
+                    if chunk:
+                        file.write(chunk)
+            await message.reply_text(f'File downloaded and saved as {file_name}')
 
-        # Send the downloaded file back to the user
-        await client.send_document(
-            chat_id=message.chat.id,
-            document=file_path,
-            caption=f"Here is your downloaded file: {file_name}"
-        )
+            # Send the downloaded file back to the user
+            await client.send_document(
+                chat_id=message.chat.id,
+                document=file_path,
+                caption=f"Here is your downloaded file: {file_name}"
+            )
+        else:
+            await message.reply_text(f'Failed to download the file. Status Code: {response.status_code}')
     except Exception as e:
-        await message.reply_text('Failed to download the file.')
-
+        await message.reply_text(f'Failed to download the file. Error: {e}')
 # Run the client
 app.run()
 
