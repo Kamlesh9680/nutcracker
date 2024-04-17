@@ -10,6 +10,10 @@ from texts import HELP_TEXT
 import bypasser
 import freewall
 from time import time
+import requests
+import shutil
+import os
+
 
 
 # bot
@@ -30,6 +34,35 @@ def handleIndex(ele,message,msg):
     for page in result: app.send_message(message.chat.id, page, reply_to_message_id=message.id, disable_web_page_preview=True)
 
 
+
+# Function to download video
+def download_video(url, message):
+    try:
+        # Send message indicating download is in progress
+        download_msg = app.send_message(message.chat.id, "📥 Downloading video...")
+
+        # Send a GET request to download the video
+        with requests.get(url, stream=True) as r:
+            r.raise_for_status()
+            # Set a path for the downloaded video
+            video_path = "downloaded_video.mp4"
+            # Open the file and write the content of the response
+            with open(video_path, "wb") as f:
+                shutil.copyfileobj(r.raw, f)
+
+        # Send the downloaded video to the user
+        app.send_video(message.chat.id, video_path, reply_to_message_id=message.message_id)
+
+        # Remove the downloaded video file
+        os.remove(video_path)
+
+        # Delete the "Downloading video..." message
+        app.delete_messages(message.chat.id, download_msg.message_id)
+
+    except Exception as e:
+        # If an error occurs during download, send an error message
+        app.send_message(message.chat.id, f"❌ Error downloading video: {e}")
+
 # loop thread
 def loopthread(message,otherss=False):
 
@@ -45,6 +78,14 @@ def loopthread(message,otherss=False):
 
     if bypasser.ispresent(bypasser.ddl.ddllist,urls[0]):
         msg = app.send_message(message.chat.id, "⚡ __generating...__", reply_to_message_id=message.id)
+        try:
+            download_link = bypasser.ddl.direct_link_generator(urls[0])
+            # Download the video using the download_link
+            download_video(download_link, message)
+            return
+        except Exception as e:
+            app.send_message(message.chat.id, f"❌ Error: {e}", reply_to_message_id=message.message_id)
+            return
     elif freewall.pass_paywall(urls[0], check=True):
         msg = app.send_message(message.chat.id, "🕴️ __jumping the wall...__", reply_to_message_id=message.id)
     else:
