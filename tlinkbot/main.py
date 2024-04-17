@@ -10,8 +10,6 @@ from texts import HELP_TEXT
 import bypasser
 import freewall
 from time import time
-import os
-import shutil
 
 
 # bot
@@ -32,62 +30,83 @@ def handleIndex(ele,message,msg):
     for page in result: app.send_message(message.chat.id, page, reply_to_message_id=message.id, disable_web_page_preview=True)
 
 
-# Update the loopthread function
-def loopthread(message, otherss=False):
+# loop thread
+def loopthread(message,otherss=False):
+
     urls = []
-    if otherss:
-        texts = message.caption
-    else:
-        texts = message.text
+    if otherss: texts = message.caption
+    else: texts = message.text
 
-    if texts in [None, ""]:
-        return
-
+    if texts in [None,""]: return
     for ele in texts.split():
-        if ele.startswith("http://") or ele.startswith("https://"):
+        if "http://" in ele or "https://" in ele:
             urls.append(ele)
+    if len(urls) == 0: return
 
-    if len(urls) == 0:
-        return
-
-    for url in urls:
-        if "https://olamovies" in url or "https://psa.wf/" in url:
-            # For certain platforms, handle the URL differently
-            handle_special_case(url, message, otherss)
+    if bypasser.ispresent(bypasser.ddl.ddllist,urls[0]):
+        msg = app.send_message(message.chat.id, "⚡ __generating...__", reply_to_message_id=message.id)
+    elif freewall.pass_paywall(urls[0], check=True):
+        msg = app.send_message(message.chat.id, "🕴️ __jumping the wall...__", reply_to_message_id=message.id)
+    else:
+        if "https://olamovies" in urls[0] or "https://psa.wf/" in urls[0]:
+            msg = app.send_message(message.chat.id, "⏳ __this might take some time...__", reply_to_message_id=message.id)
         else:
-            # For other platforms, download the video and send it directly
-            download_and_send_video(url, message, otherss)
+            msg = app.send_message(message.chat.id, "🔎 __bypassing...__", reply_to_message_id=message.id)
 
-def download_and_send_video(url, message, otherss):
-    # Download the video
-    video_file = f"{message.message_id}.mp4"
-    app.download_media(url, file_name=video_file)
+    strt = time()
+    links = ""
+    temp = None
+    for ele in urls:
+        if search(r"https?:\/\/(?:[\w.-]+)?\.\w+\/\d+:", ele):
+            handleIndex(ele,message,msg)
+            return
+        elif bypasser.ispresent(bypasser.ddl.ddllist,ele):
+            try: temp = bypasser.ddl.direct_link_generator(ele)
+            except Exception as e: temp = "**Error**: " + str(e)
+        elif freewall.pass_paywall(ele, check=True):
+            freefile = freewall.pass_paywall(ele)
+            if freefile:
+                try: 
+                    app.send_document(message.chat.id, freefile, reply_to_message_id=message.id)
+                    remove(freefile)
+                    app.delete_messages(message.chat.id,[msg.id])
+                    return
+                except: pass
+            else: app.send_message(message.chat.id, "__Failed to Jump", reply_to_message_id=message.id)
+        else:    
+            try: temp = bypasser.shortners(ele)
+            except Exception as e: temp = "**Error**: " + str(e)
+        print("bypassed:",temp)
+        if temp != None: links = links + temp + "\n\n"
+    end = time()
+    took = "Took " + "{:.2f}".format(end-strt) + "sec"
+    print(took)
+    
+    if otherss:
+        try:
+            app.send_photo(message.chat.id, message.photo.file_id, f'{links}**\n{took}**', reply_to_message_id=message.id)
+            app.delete_messages(message.chat.id,[msg.id])
+            return
+        except: pass
 
-    # Send the video file
-    try:
-        if otherss:
-            app.send_video(
-                message.chat.id,
-                video_file,
-                caption="Here's the video you requested!",
-                reply_to_message_id=message.message_id
-            )
-        else:
-            app.send_video(
-                message.chat.id,
-                video_file,
-                caption="Here's the video you requested!",
-                reply_to_message_id=message.message_id
-            )
+    try: 
+        final = []
+        tmp = ""
+        for ele in links.split("\n\n"):
+            tmp += ele + "\n\n"
+            if len(tmp) > 4000:
+                final.append(tmp)
+                tmp = ""
+        final.append(tmp)
+        app.delete_messages(message.chat.id, msg.id)
+        tmsgid = message.id
+        for ele in final:
+            tmsg = app.send_message(message.chat.id, f'{ele}**{took}**',reply_to_message_id=tmsgid, disable_web_page_preview=True)
+            tmsgid = tmsg.id
     except Exception as e:
-        app.send_message(
-            message.chat.id,
-            f"Failed to send video: {e}",
-            reply_to_message_id=message.message_id
-        )
+        app.send_message(message.chat.id, f"__Failed to Bypass : {e}__", reply_to_message_id=message.id)
+        
 
-    # Clean up the downloaded file
-    os.remove(video_file)
 
 # start command
 @app.on_message(filters.command(["start"]))
