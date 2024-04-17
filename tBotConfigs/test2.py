@@ -3,6 +3,8 @@ import requests
 from pyrogram import Client, filters
 from pyrogram.types import Message
 import magic
+import random
+import string
 
 # Your API_ID and API_HASH obtained from https://my.telegram.org/auth
 API_ID = "29305574"
@@ -43,23 +45,34 @@ async def download_file_with_retry(url):
             print(f"Failed to download. Error: {e}")
     return None
 
+def generate_random_filename(length=12):
+    letters_and_digits = string.ascii_letters + string.digits
+    return ''.join(random.choice(letters_and_digits) for _ in range(length))
+
 @app.on_message(filters.text)
 async def download_file(client, message):
     url = message.text
     try:
         file_path = await download_file_with_retry(url)
         if file_path:
-            await message.reply_text(f'File downloaded and saved as {os.path.basename(file_path)}')
+            # Generate a random filename for the downloaded file
+            file_extension = os.path.splitext(url)[1]  # Get the file extension from the URL
+            random_filename = generate_random_filename() + file_extension
+            new_file_path = os.path.join(UPLOADS_DIR, random_filename)
+            
+            # Rename the downloaded file with the random filename
+            os.rename(file_path, new_file_path)
+
+            await message.reply_text(f'File downloaded and saved as {random_filename}')
             # Send the downloaded file back to the user
             await client.send_document(
                 chat_id=message.chat.id,
-                document=file_path,
-                caption=f"Here is your downloaded file: {os.path.basename(file_path)}"
+                document=new_file_path,
+                caption=f"Here is your downloaded file: {random_filename}"
             )
         else:
             await message.reply_text(f'Failed to download the file after multiple retries.')
     except Exception as e:
         await message.reply_text(f'Failed to download the file. Error: {e}')
-
 
 app.run()
