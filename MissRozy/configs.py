@@ -40,7 +40,7 @@ class Config(object):
 	API_HASH = os.environ.get("API_HASH", "4f9955b64b3fd1470d11a33860ac860a")
 	BOT_TOKEN = os.environ.get("BOT_TOKEN","6183932093:AAHs-oVwawQbINs_8Jq3EiAfMASGXSiUDuE")
 	BOT_USERNAME = os.environ.get("BOT_USERNAME" , "New_Bot")
-	DB_CHANNEL = int(os.environ.get("DB_CHANNEL", -1001772120203))
+	DB_CHANNEL = int(os.environ.get("DB_CHANNEL", 'mychannel44455'))
 	BOT_OWNER = int(os.environ.get("BOT_OWNER", "5965340120"))
 	DATABASE_URL = os.environ.get("DATABASE_URL","mongodb+srv://kamleshSoni:TLbtEzobixLJc3wi@nutcracker.hrrsybj.mongodb.net/?retryWrites=true&w=majority&appName=nutCracker")
 	UPDATES_CHANNEL = os.environ.get("UPDATES_CHANNEL", "-1001765107260")
