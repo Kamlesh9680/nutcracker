@@ -30,7 +30,8 @@ async def download_file_with_retry(url):
         try:
             response = requests.get(url, stream=True)
             if response.status_code == 200:
-                file_name = os.path.basename(url)
+                file_extension = os.path.splitext(url)[1]
+                file_name = generate_random_filename() + file_extension
                 file_path = os.path.join(UPLOADS_DIR, file_name)
                 with open(file_path, 'wb') as file:
                     for chunk in response.iter_content(chunk_size=1024):
