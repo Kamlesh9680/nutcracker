@@ -2,6 +2,7 @@ import os
 import requests
 from pyrogram import Client, filters
 from pyrogram.types import Message
+import magic
 
 # Your API_ID and API_HASH obtained from https://my.telegram.org/auth
 API_ID = "29305574"
@@ -45,17 +46,21 @@ async def download_file(client, message):
     try:
         file_path = await download_file_with_retry(url)
         if file_path:
-            await message.reply_text(f'File downloaded and saved as {os.path.basename(file_path)}')
-            # Send the downloaded file back to the user
-            await client.send_document(
-                chat_id=message.chat.id,
-                document=file_path,
-                caption=f"Here is your downloaded file: {os.path.basename(file_path)}"
-            )
+            file_type = magic.Magic(mime=True).from_file(file_path)
+            if file_type.startswith('text') or file_type == 'application/octet-stream':
+                # If the file type is text or octet-stream, it may be misidentified
+                await message.reply_text(f'File downloaded but its format could not be determined.')
+            else:
+                await message.reply_text(f'File downloaded and saved as {os.path.basename(file_path)}')
+                # Send the downloaded file back to the user
+                await client.send_document(
+                    chat_id=message.chat.id,
+                    document=file_path,
+                    caption=f"Here is your downloaded file: {os.path.basename(file_path)}"
+                )
         else:
             await message.reply_text(f'Failed to download the file after multiple retries.')
     except Exception as e:
         await message.reply_text(f'Failed to download the file. Error: {e}')
-
 # Run the client
 app.run()
