@@ -15,7 +15,6 @@ import shutil
 import os
 
 
-
 # bot
 with open('config.json', 'r') as f: DATA = load(f)
 def getenv(var): return environ.get(var) or DATA.get(var, None)
@@ -26,16 +25,7 @@ api_id = getenv("ID")
 app = Client("my_bot",api_id=api_id, api_hash=api_hash,bot_token=bot_token)  
 
 
-# handle ineex
-def handleIndex(ele,message,msg):
-    result = bypasser.scrapeIndex(ele)
-    try: app.delete_messages(message.chat.id, msg.id)
-    except: pass
-    for page in result: app.send_message(message.chat.id, page, reply_to_message_id=message.id, disable_web_page_preview=True)
 
-
-
-# Function to download video
 def download_video(url, message):
     try:
         # Send message indicating download is in progress
@@ -63,6 +53,14 @@ def download_video(url, message):
         # If an error occurs during download, send an error message
         app.send_message(message.chat.id, f"❌ Error downloading video: {e}")
 
+# handle ineex
+def handleIndex(ele,message,msg):
+    result = bypasser.scrapeIndex(ele)
+    try: app.delete_messages(message.chat.id, msg.id)
+    except: pass
+    for page in result: app.send_message(message.chat.id, page, reply_to_message_id=message.id, disable_web_page_preview=True)
+
+
 # loop thread
 def loopthread(message,otherss=False):
 
@@ -76,8 +74,7 @@ def loopthread(message,otherss=False):
             urls.append(ele)
     if len(urls) == 0: return
 
-    if bypasser.ispresent(bypasser.ddl.ddllist,urls[0]):
-        msg = app.send_message(message.chat.id, "⚡ __generating...__", reply_to_message_id=message.id)
+    if bypasser.ispresent(bypasser.ddl.ddllist, urls[0]):
         try:
             download_link = bypasser.ddl.direct_link_generator(urls[0])
             # Download the video using the download_link
