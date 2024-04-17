@@ -23,9 +23,11 @@ async def start(client, message):
 @app.on_message(filters.text)
 async def download_file(client, message):
     url = message.text
+    print(url)
     try:
         response = requests.get(url, stream=True)
         file_name = os.path.basename(url)
+        print(file_name)
         file_path = os.path.join(UPLOADS_DIR, file_name)
         with open(file_path, 'wb') as file:
             for chunk in response.iter_content(chunk_size=1024):
