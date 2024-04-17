@@ -1,21 +1,28 @@
 import os
 import requests
-from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from pyrogram import Client, filters
+from pyrogram.types import Message
 
-# Telegram Bot Token
-TOKEN = "6183932093:AAHs-oVwawQbINs_8Jq3EiAfMASGXSiUDuE"
+# Your API_ID and API_HASH obtained from https://my.telegram.org/auth
+API_ID = "29305574"
+API_HASH = "4f9955b64b3fd1470d11a33860ac860a"
+BOT_TOKEN = "6183932093:AAHs-oVwawQbINs_8Jq3EiAfMASGXSiUDuE"
 
 # Directory to save downloads
 UPLOADS_DIR = "../uploads"
 
+# Create Pyrogram client
+app = Client("download_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+
 # Command handler
-def start(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text('Send me a direct download link and I will download the file for you.')
+@app.on_message(filters.command("start"))
+async def start(client, message):
+    await message.reply_text('Send me a direct download link and I will download the file for you.')
 
 # Handler for direct download links
-def download_file(update: Update, context: CallbackContext) -> None:
-    url = update.message.text
+@app.on_message(filters.text & filters.command)
+async def download_file(client, message):
+    url = message.text
     try:
         response = requests.get(url, stream=True)
         file_name = os.path.basename(url)
@@ -24,26 +31,16 @@ def download_file(update: Update, context: CallbackContext) -> None:
             for chunk in response.iter_content(chunk_size=1024):
                 if chunk:
                     file.write(chunk)
-        update.message.reply_text(f'File downloaded and saved as {file_name}')
+        await message.reply_text(f'File downloaded and saved as {file_name}')
+
+        # Send the downloaded file back to the user
+        await client.send_document(
+            chat_id=message.chat.id,
+            document=file_path,
+            caption=f"Here is your downloaded file: {file_name}"
+        )
     except Exception as e:
-        update.message.reply_text('Failed to download the file.')
+        await message.reply_text('Failed to download the file.')
 
-def main() -> None:
-    # Create the Updater and pass it your bot's token.
-    updater = Updater(TOKEN)
-
-    # Get the dispatcher to register handlers
-    dispatcher = updater.dispatcher
-
-    # Define handlers
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, download_file))
-
-    # Start the Bot
-    updater.start_polling()
-
-    # Run the bot until you press Ctrl-C
-    updater.idle()
-
-if __name__ == '__main__':
-    main()
+# Run the client
+app.run()
