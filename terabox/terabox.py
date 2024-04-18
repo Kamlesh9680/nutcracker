@@ -3,7 +3,7 @@ from urllib.parse import parse_qs, urlparse
 
 import requests
 
-from config import COOKIE
+# from config import COOKIE
 from tools import get_formatted_size
 
 
@@ -105,7 +105,7 @@ def get_data(url: str):
         "Accept-Encoding": "gzip, deflate, br",
         "Accept-Language": "en-US,en;q=0.9,hi;q=0.8",
         "Connection": "keep-alive",
-        "Cookie": COOKIE,
+        # "Cookie": COOKIE,
         "DNT": "1",
         "Host": "www.terabox.app",
         "Sec-Fetch-Dest": "document",
@@ -137,7 +137,7 @@ def get_data(url: str):
         "Accept-Encoding": "gzip, deflate, br",
         "Accept-Language": "en-US,en;q=0.9,hi;q=0.8",
         "Connection": "keep-alive",
-        "Cookie": COOKIE,
+        # "Cookie": COOKIE,
         "DNT": "1",
         "Host": "www.terabox.app",
         "Sec-Fetch-Dest": "document",
