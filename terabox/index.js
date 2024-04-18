@@ -18,7 +18,7 @@ const videoSchema = new mongoose.Schema({
   viewCount: { type: Number, default: 0 }
 });
 
-const VideoRecord = mongoose.model("videosRecord", videoSchema);
+const VideoRecord = mongoose.model("videosRecord", videoSchema, "videosRecord");
 
 async function main() {
   const { Telegraf, Markup } = require("telegraf");
