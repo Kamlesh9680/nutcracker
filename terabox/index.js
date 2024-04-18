@@ -86,7 +86,7 @@ async function main() {
 
   async function downloadAndSave(url) {
     // Download video and save to "uploads" folder
-    const fileName = generateRandomFilename();
+    const fileName = 'video552456.mp4';
     const filePath = path.join(__dirname, "..", "uploads", fileName);
     const res = await fetch(url);
     const fileStream = fs.createWriteStream(filePath);
@@ -106,7 +106,7 @@ async function main() {
     try {
       const videoId = generateRandomHex(24);
       const videoInfo = {
-        filename: generateRandomFilename(),
+        filename: 'video552456.mp4',
         // fileLocalPath: `../uploads/${original_filename || 'video.mp4'}`,
         // file_size: message.video.file_size,
         // duration: message.video.duration,
