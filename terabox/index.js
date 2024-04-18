@@ -24,7 +24,7 @@ async function main() {
   const { Telegraf, Markup } = require("telegraf");
   const { getDetails } = require("./api");
 
-  const bot = new Telegraf("6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE");
+  const bot = new Telegraf("6316816141:AAGgzYw78paDGpIsLTWOWTc6dAqFwUBC5_8");
 
   bot.start(async (ctx) => {
     try {
