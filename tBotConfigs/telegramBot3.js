@@ -30,12 +30,12 @@ bot.command("start", async (ctx) => {
     const user_record = await get_user_record(user_id);
     const first = ctx.message.from.first_name;
     if (user_record) {
-        ctx.reply(`Welcome back! ....`);
+        ctx.reply(`Welcome back! ....\nThis is NutCracker Finance bot.\n\nInfo:\n1. Earnings are calculated on the basis on $0.6/1000 views.\n2. You can add/edit bank details(fill carefully) for withdrawal using /editbankdetails command.`);
     } else {
         console.log("new");
         await insert_user_record(user_id, user_name);
         ctx.reply(
-            `Welcome! ${first}\n\nWe're glad you're here.\nTo start using our platform\nYou can start sharing videos directly\n\n Note: If anything went wrong don't worry about it as we are on testing phase`
+            `Welcome! ${first}\n\nWe're glad you're here.\nThis is NutCracker Finance bot.\n\nInfo:\n1. Earnings are calculated on the basis on $0.6/1000 views.\n2. You can add edit bank details(fill carefully) for withdrawal using /editbankdetails command.`
         );
     }
 });
@@ -52,6 +52,10 @@ bot.command("availablebots", async (ctx) => {
         ],
         [
             "NutCracker Finance Bot",
+            "https://t.me/NutCracker_Finance_Bot",
+        ],
+        [
+            "NutCracker - Terabox Links to video",
             "https://t.me/NutCracker_Finance_Bot",
         ],
     ];

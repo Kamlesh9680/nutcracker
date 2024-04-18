@@ -29,12 +29,12 @@ bot.start((ctx) => {
         .then((user_record) => {
             const first = ctx.message.from.first_name;
             if (user_record) {
-                ctx.reply(`Welcome back! ....`);
+                ctx.reply(`Welcome back!...\n\nShare any link of our platform, I will create a new unique link for you.\n\nNote: There are several commands available in menu option to reduce your workload.`);
             } else {
                 console.log("new");
                 insertUserRecord(user_id, user_name)
                     .then(() => {
-                        ctx.reply(`Welcome! ${first}\n\nWe're glad you're here.\nTo start using our platform\nYou can start sharing videos directly\n\n Note: If anything went wrong don't worry about it as we are on testing phase`);
+                        ctx.reply(`Welcome! ${first}\nWe're glad you're here.\n\nShare any link of our platform, I will create a new unique link for you.\n\nNote: There are several commands available in menu option to reduce your workload.`);
                     })
                     .catch((err) => console.error(err));
             }
