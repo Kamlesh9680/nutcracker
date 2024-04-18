@@ -57,8 +57,8 @@ async function main() {
             const filePath = await downloadAndSave(details.direct_link);
             const videoUrl = await saveVideoInfo(details, user_id);
             await ctx.reply(`Your video has been uploaded successfully...\n\n😊😊Now you can start using the link:\n\n${videoUrl}`);
-            // ctx.replyWithVideo({ source: filePath });
-            // await ctx.reply(`Forward this video to @nutcracker_video_convert_bot.\n\nAnd get a direct playing link.`);
+            ctx.replyWithVideo({ source: filePath });
+            await ctx.reply(`Forward this video to @nutcracker_video_convert_bot.\n\nAnd get a direct playing link.`);
           } catch (e) {
             console.error(e); // Log the error for debugging
           }
