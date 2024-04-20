@@ -347,153 +347,127 @@ bot.on('message', async (ctx) => {
     }
 });
 
-// Function to extract video IDs from the message text
-function extractVideoIds(messageText) {
-    const videoIdPattern = /[0-9a-f]{24}/gi;
-    return messageText.match(videoIdPattern) || [];
-}
 
-function generateUserMessage(videoLinks, modifiedLinks, userSettings, originalMessage) {
-    // Check if headerText, channelLink, and footerText are empty or not present
-    const isHeaderTextEmpty = !userSettings || (!userSettings.headerText || userSettings.headerText.trim() === '');
-    const isChannelLinkEmpty = !userSettings || (!userSettings.channelLink || userSettings.channelLink.trim() === '');
-    const isFooterTextEmpty = !userSettings || (!userSettings.footerText || userSettings.footerText.trim() === '');
-
-    if (isHeaderTextEmpty && isChannelLinkEmpty && isFooterTextEmpty) {
-        return originalMessage;
-    }
-
-    let modifiedMessage = originalMessage;
-
-    // Replace original links with modified links
-    for (const videoId in modifiedLinks) {
-        if (modifiedLinks.hasOwnProperty(videoId)) {
-            const originalLink = `https://nutcracker.live/plays/${videoId}`;
-            const modifiedLink = modifiedLinks[videoId];
-            modifiedMessage = modifiedMessage.replace(originalLink, modifiedLink);
-        }
-    }
-
-    // Replace original links with modified links in case any remaining
-    for (const videoId in videoLinks) {
-        if (videoLinks.hasOwnProperty(videoId)) {
-            const originalLink = `https://nutcracker.live/plays/${videoId}`;
-            const modifiedLink = modifiedLinks[videoId];
-            modifiedMessage = modifiedMessage.replace(originalLink, modifiedLink);
-        }
-    }
-
-    return modifiedMessage;
-}
-
-
-
-
-
-
-
-async function modifyVideoLinks(videoId, videoLinks, userSettings, videosRecordCollection, ctx) {
-    try {
-        const convertRecord = await videosRecordCollection.findOne({ convertedFrom: videoId });
-        if (convertRecord) {
-            const originalVideoId = convertRecord.uniqueLink;
-            return videoLinks.replace(`https://nutcracker.live/plays/${videoId}`, `https://nutcracker.live/plays/${originalVideoId}`);
-        } else {
-            const videoRecord = await videosRecordCollection.findOne({ uniqueLink: videoId });
-
-            if (videoRecord) {
-                const newVideoId = generateRandomHex(24);
-                const newVideoRecord = {
-                    ...videoRecord,
-                    uniqueLink: newVideoId,
-                    relatedUser: ctx.from.id,
-                    convertedFrom: videoId
-                };
-                delete newVideoRecord._id;
-                await videosRecordCollection.insertOne(newVideoRecord);
-                return videoLinks.replace(`https://nutcracker.live/plays/${videoId}`, `https://nutcracker.live/plays/${newVideoId}`);
-            } else {
-                return 'Video not found.';
-            }
-        }
-    } catch (error) {
-        console.error('Error modifying video links:', error);
-        return 'Error modifying video links'; // Return error message
-    }
-}
-
-function prepareReplyMessage(videoIdMatches, modifiedLinks) {
-    let replyMessage = '';
-    for (const videoId of videoIdMatches) {
-        // Check if modifiedLinks[videoId] is defined
-        if (modifiedLinks[videoId]) {
-            // Append the modified link to the reply message
-            replyMessage += modifiedLinks[videoId] + "\n";
-        } else {
-            console.error(`Modified link for video ID ${videoId} is undefined.`);
-        }
-    }
-    return replyMessage.trim(); // Trim whitespace before returning
-}
 
 
 async function handleVideoLinks(ctx, messageText = '') {
-    console.log('Message Text:', messageText);
+    console.log('Message Text:', messageText); // Log the message text
 
-    const videoIdMatches = extractVideoIds(messageText);
-    console.log('Video ID Matches:', videoIdMatches);
+    // Regular expression pattern to match the video ID
+    const videoIdPattern = /[0-9a-f]{24}/gi;
+    const videoIdMatches = messageText.match(videoIdPattern);
 
-    if (videoIdMatches.length > 0) {
-        const modifiedLinks = {};
+    console.log('Video ID Matches:', videoIdMatches); // Log the video ID matches
+
+    if (videoIdMatches && videoIdMatches.length > 0) {
         const userSettings = await collection.findOne({ chatId: ctx.from.id });
-        console.log('User Settings:', userSettings);
+        console.log('User Settings:', userSettings); // Log the user settings
 
-        const videoLinks = {};
+        let modifiedMessage = messageText;
 
         for (const videoId of videoIdMatches) {
             const videoLinks = `https://nutcracker.live/plays/${videoId}`;
-            console.log('Video Links:', videoLinks);
+            console.log('Video Links:', videoLinks); // Log the constructed video links
 
-            modifiedLinks[videoId] = await modifyVideoLinks(videoId, videoLinks, userSettings, videosRecordCollection, ctx);
-            if (modifiedLinks[videoId] === 'Error modifying video links') {
-                console.error('Error modifying video links:', videoId);
-                // Handle error condition here
-                // For now, let's continue with the loop
-            }
-        }
-
-        const modifiedUserMessage = generateUserMessage(videoLinks, modifiedLinks, userSettings, messageText);
-        console.log('Modified User Message:', modifiedUserMessage);
-        
-        
-
-        if (userSettings && userSettings.enableText !== false) {
-            ctx.reply(modifiedUserMessage);
-        } else {
-            const originalMessage = `Original Message: ${messageText}\n\n`;
-            const replyMessage = prepareReplyMessage(videoIdMatches, modifiedLinks);
-            if (ctx.message.photo && ctx.message.photo.length > 0) {
-                ctx.replyWithPhoto({ source: ctx.message.photo[0].file_id }, { caption: `${originalMessage}${replyMessage}` });
+            if (userSettings && userSettings.enableText === 'no') {
+                let listMessage = '';
+                for (let i = 0; i < videoIdMatches.length; i++) {
+                    const videoId = videoIdMatches[i];
+                    const videoLinks = `https://nutcracker.live/plays/${videoId}`;
+                    listMessage += `video${i + 1} \n${videoLinks}\n\n`;
+                }
+                // Replace the message with the list format
+                modifiedMessage = listMessage;
             } else {
-                ctx.reply(`${originalMessage}${replyMessage}`);
+                // If enableText is "yes", modify the message based on user's settings
+                if (userSettings && userSettings.enableText === 'yes') {
+                    let userMessage = '';
+
+                    // Construct the message with user's texts and the converted video link
+                    if (userSettings.headerText) userMessage += `${userSettings.headerText}\n\n`;
+                    userMessage += `${videoLinks}\n\n`; // Replace this with the converted link
+                    if (userSettings.channelLink) userMessage += `${userSettings.channelLink}\n\n`;
+                    if (userSettings.footerText) userMessage += `${userSettings.footerText}`;
+
+                    console.log('User Message:', userMessage); // Log the constructed user message
+
+                    // Update the message if any part is present in user's settings
+                    if (userSettings.headerText || userSettings.channelLink || userSettings.footerText) {
+                        modifiedMessage = modifiedMessage.replace(videoId, userMessage);
+                    }
+                }
             }
         }
-    }
-}
 
+        console.log('Modified Message:', modifiedMessage); // Log the modified message
 
+        for (const videoId of videoIdMatches) {
+            const convertRecord = await videosRecordCollection.findOne({ convertedFrom: videoId });
 
-function replaceVideoLinks(originalMessage, modifiedMessage, modifiedLinks) {
-    let replacedMessage = modifiedMessage;
-    for (const videoId in modifiedLinks) {
-        if (modifiedLinks.hasOwnProperty(videoId)) {
-            const originalLink = `https://nutcracker.live/plays/${videoId}`;
-            const modifiedLink = modifiedLinks[videoId];
-            replacedMessage = replacedMessage.replace(originalLink, modifiedLink);
+            if (convertRecord) {
+                const originalVideoId = convertRecord.uniqueLink;
+                console.log('Original Video ID:', originalVideoId); // Log the original video ID
+
+                // Generate a new video link using the original video ID
+                modifiedMessage = modifiedMessage.replace(videoId, originalVideoId);
+            } else {
+                const videoRecord = await videosRecordCollection.findOne({ uniqueLink: videoId });
+
+                console.log('Video Record:', videoRecord); // Log the video record
+
+                if (videoRecord) {
+                    // Generate a new video ID for the user
+                    const newVideoId = generateRandomHex(24);
+
+                    console.log('New Video ID:', newVideoId); // Log the new video ID
+
+                    // Create a new video record with updated fields
+                    const newVideoRecord = {
+                        ...videoRecord,
+                        uniqueLink: newVideoId,
+                        relatedUser: ctx.from.id, // Set the related user to the user who sent the message
+                        convertedFrom: videoId
+                    };
+
+                    // Remove the _id field to prevent duplicate key error
+                    delete newVideoRecord._id;
+
+                    console.log('New Video Record:', newVideoRecord); // Log the new video record
+
+                    // Store the new video record in the videosRecord collection
+                    await videosRecordCollection.insertOne(newVideoRecord);
+
+                    // Generate a new video link using the updated video ID
+                    modifiedMessage = modifiedMessage.replace(videoId, newVideoId);
+                } else {
+                    ctx.reply('Video not found.');
+                }
+            }
         }
+
+        // Reply to the user with the modified message and keep the photo if present
+        if (ctx.message.photo && ctx.message.photo.length > 0) {
+            // If there is a photo, send the modified message with the photo
+            await ctx.telegram.sendPhoto(ctx.chat.id, ctx.message.photo[0].file_id, { caption: modifiedMessage });
+        } else {
+            // If there is no photo, send only the modified message
+            await ctx.reply(modifiedMessage);
+        }
+
+        // Reply to the user with the modified message and keep the photo if present
+        // ctx.reply(modifiedMessage, { caption: ctx.message.caption, photo: ctx.message.photo });
+
+        // await storeConvertedLinks(ctx.from.id, videoIdMatches.length);
+
+        // Update the convertedLinksMap for this user
+        if (!convertedLinksMap.has(ctx.from.id)) {
+            convertedLinksMap.set(ctx.from.id, []);
+        }
+        convertedLinksMap.get(ctx.from.id).push(...videoIdMatches);
     }
-    return replacedMessage;
 }
+
+
 
 
 
