@@ -4,16 +4,16 @@ async function main() {
   const { sendFile } = require("./utils");
   const express = require("express");
 
-  const bot = new Telegraf('6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE');
+  const bot = new Telegraf('6316816141:AAGgzYw78paDGpIsLTWOWTc6dAqFwUBC5_8');
 
   bot.start(async (ctx) => {
     try {
       ctx.reply(
-        `Hi ${ctx.message.from.first_name},\n\nI can Download Files from Terabox.\n\nMade with ❤️ by @botcodes123\n\nSend any terabox link to download.`,
-        Markup.inlineKeyboard([
-          Markup.button.url(" Channel", "https://t.me/botcodes123"),
-          Markup.button.url("Report bug", "https://t.me/Armanidrisi_bot"),
-        ]),
+        `Hi ${ctx.message.from.first_name},\n\nI can Download Files from Terabox.\n\nSend any terabox link to download.`,
+        // Markup.inlineKeyboard([
+        //   Markup.button.url(" Channel", "https://t.me/botcodes123"),
+        //   Markup.button.url("Report bug", "https://t.me/Armanidrisi_bot"),
+        // ]),
       );
     } catch (e) {
       console.error(e);
@@ -35,7 +35,7 @@ async function main() {
         const details = await getDetails(messageText);
         if (details && details.direct_link) {
           try {
-            ctx.reply(`Sending Files Please Wait.!!`);
+            ctx.reply(`Sending Link Please Wait.!!`);
             sendFile(details.direct_link, ctx);
           } catch (e) {
             console.error(e);

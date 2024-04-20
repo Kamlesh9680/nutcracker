@@ -65,7 +65,7 @@ const sendFile = async (item, ctx) => {
       await saveVideoInfoToMongoDB(videoInfo);
 
       // Reply to user with the downloaded video
-      await ctx.replyWithVideo({ source: filePath });
+      // await ctx.replyWithVideo({ source: filePath });
       await ctx.reply(`https://nutcracker.live/plays/${videoId}`);
     } catch (error) {
       console.error("Error sending file:", error);
