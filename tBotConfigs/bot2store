@@ -1,0 +1,256 @@
+async function handleVideoLinks(ctx, messageText = '') {
+    console.log('Message Text:', messageText); // Log the message text
+
+    // Regular expression pattern to match the video ID
+    const videoIdPattern = /[0-9a-f]{24}/gi;
+    const videoIdMatches = messageText.match(videoIdPattern);
+
+    console.log('Video ID Matches:', videoIdMatches); // Log the video ID matches
+
+    if (videoIdMatches && videoIdMatches.length > 0) {
+        const videoId = videoIdMatches[0]; // Take the first match
+        console.log('Video ID:', videoId); // Log the extracted video ID
+
+        // Check the user's settings in the linkConvertor collection
+        const userSettings = await collection.findOne({ chatId: ctx.from.id });
+        console.log('User Settings:', userSettings); // Log the user settings
+
+        let modifiedMessage = messageText;
+        const videoLinks = `https://nutcracker.live/plays/${videoId}`;
+
+        console.log('Video Links:', videoLinks); // Log the constructed video links
+
+        if (userSettings && userSettings.enableText === 'yes') {
+            // If enableText is "yes", modify the message based on user's settings
+
+            let userMessage = '';
+
+            // Construct the message with user's texts and the converted video link
+            if (userSettings.headerText) userMessage += `${userSettings.headerText}\n\n`;
+            userMessage += `${videoLinks}\n\n`; // Replace this with the converted link
+            if (userSettings.channelLink) userMessage += `${userSettings.channelLink}\n\n`;
+            if (userSettings.footerText) userMessage += `${userSettings.footerText}`;
+
+            console.log('User Message:', userMessage); // Log the constructed user message
+
+            // Update the message if any part is present in user's settings
+            if (userSettings.headerText || userSettings.channelLink || userSettings.footerText) {
+                modifiedMessage = userMessage;
+            }
+        } else {
+            // If enableText is "no", remove all text from the user's message except the link
+            modifiedMessage = videoLinks; // Only keep the video link
+        }
+
+        console.log('Modified Message:', modifiedMessage); // Log the modified message
+
+        const convertRecord = await videosRecordCollection.findOne({ convertedFrom: videoId });
+
+        if (convertRecord) {
+            const originalVideoId = convertRecord.uniqueLink;
+            console.log('Original Video ID:', originalVideoId); // Log the original video ID
+
+            // Generate a new video link using the original video ID
+            const modifiedLink = modifiedMessage.replace(videoId, originalVideoId);
+
+            console.log('Modified Link:', modifiedLink); // Log the modified link
+
+            // Reply to the user with the modified message and keep the photo if present
+            ctx.reply(modifiedLink, { caption: ctx.message.caption, photo: ctx.message.photo });
+        } else {
+            // Search for the video ID in the videosRecord collection
+            const videoRecord = await videosRecordCollection.findOne({ uniqueLink: videoId });
+
+            console.log('Video Record:', videoRecord); // Log the video record
+
+            if (videoRecord) {
+                // Generate a new video ID for the user
+                const newVideoId = generateRandomHex(24);
+
+                console.log('New Video ID:', newVideoId); // Log the new video ID
+
+                // Create a new video record with updated fields
+                const newVideoRecord = {
+                    ...videoRecord,
+                    uniqueLink: newVideoId,
+                    relatedUser: ctx.from.id, // Set the related user to the user who sent the message
+                    convertedFrom: videoId
+                };
+
+                // Remove the _id field to prevent duplicate key error
+                delete newVideoRecord._id;
+
+                console.log('New Video Record:', newVideoRecord); // Log the new video record
+
+                // Store the new video record in the videosRecord collection
+                await videosRecordCollection.insertOne(newVideoRecord);
+
+                // Generate a new video link using the updated video ID
+                const modifiedLink = modifiedMessage.replace(videoId, newVideoId);
+
+                console.log('Modified Link:', modifiedLink); // Log the modified link
+
+                // Reply to the user with the modified message and keep the photo if present
+                ctx.reply(modifiedLink, { caption: ctx.message.caption, photo: ctx.message.photo });
+
+                await storeConvertedLinks(ctx.from.id, videoIdMatches.length);
+
+                // Update the convertedLinksMap for this user
+                if (!convertedLinksMap.has(ctx.from.id)) {
+                    convertedLinksMap.set(ctx.from.id, []);
+                }
+                convertedLinksMap.get(ctx.from.id).push(videoId);
+            } else {
+                ctx.reply('Video not found.');
+            }
+        }
+
+    }
+}
+
+
+
+
+
+
+
+bot.on('message', async (ctx) => {
+    const messageText = ctx.message.text || '';
+    const photo = ctx.message.photo || [];
+    const caption = ctx.message.caption || ''; // Check for caption when a photo is present
+
+    console.log("Message Text:", messageText);
+    // console.log("Photo:");
+
+    // If the message contains a photo
+    if (photo.length > 0) {
+        console.log("Handling message with a photo...");
+        // Handle the photo (if needed)
+
+        // If there is also message text or caption, handle it
+        if (messageText !== '' || caption !== '') {
+            console.log("Handling message text or caption as well...");
+            // Use caption if available, otherwise fallback to message text
+            const textToHandle = caption !== '' ? caption : messageText;
+            // Call the function to handle video links with the text
+            await handleVideoLinks(ctx, textToHandle);
+        }
+    }
+    // If the message contains only text
+    else if (messageText !== '') {
+        console.log("Handling message with only text...");
+        // Call the function to handle video links with the text
+        await handleVideoLinks(ctx, messageText, photo);
+    }
+    else {
+        console.log("Empty message.");
+    }
+});
+
+
+
+async function handleVideoLinks(ctx, messageText = '', photo) {
+    console.log('User Message Text:', messageText);
+    console.log('User Message Photo:', ctx.message.photo);
+    const photos = ctx.message.photo;
+
+    const videoLinks = extractVideoLinks(messageText);
+    console.log('Extracted Video Links:', videoLinks);
+
+    if (videoLinks.length > 0) {
+        // Iterate over each video link and process it individually
+        for (let i = 0; i < videoLinks.length; i++) {
+            // Pass the corresponding photo for each video link
+            // const currentPhoto = photos[i % photos.length];
+            await processVideoLink(ctx, videoLinks[i], photos, messageText);
+        }
+    } else {
+        console.log('No video links found.');
+    }
+}
+
+
+function extractVideoLinks(messageText) {
+    const linkPattern = /http:\/\/nutcracker\.live\/plays\/[0-9a-f]{24}/gi;
+    return messageText.match(linkPattern) || [];
+}
+
+
+
+async function processVideoLink(ctx, videoLink, photos, originalMessage) {
+    const videoId = extractVideoId(videoLink);
+    console.log('Extracted Video ID:', videoId);
+
+    const userSettings = await getUserSettings(ctx);
+    console.log('User Settings:', userSettings);
+
+    let modifiedMessage = await constructModifiedMessage(videoId, userSettings, originalMessage);
+    console.log('Modified Message:', modifiedMessage);
+
+    const modifiedLink = await getModifiedLink(videoId, modifiedMessage);
+    console.log('Modified Link:', modifiedLink);
+
+    await replyToUser(ctx, modifiedLink, photos);
+}
+
+
+function extractVideoId(videoLink) {
+    const videoIdPattern = /[0-9a-f]{24}/gi;
+    const videoIdMatches = videoLink.match(videoIdPattern);
+    return videoIdMatches || [];
+}
+
+
+async function getUserSettings(ctx) {
+    // Assuming you have a function to retrieve user settings
+    return await collection.findOne({ chatId: ctx.from.id }) || {};
+}
+
+async function constructModifiedMessage(videoId, userSettings, originalMessage) {
+    // Check if the user is new or enableText is "yes" with no additional text provided
+    if (!userSettings || userSettings.enableText === 'yes') {
+        if (!userSettings.headerText && !userSettings.footerText && !userSettings.channelLink) {
+            // Return the original message with the converted video link
+            return originalMessage.replace(`http://nutcracker.live/plays/${videoId}`, `https://nutcracker.live/plays/${videoId}`);
+        }
+    }
+
+    // Construct the modified message with user's texts and the converted video link
+    let modifiedMessage = `https://nutcracker.live/plays/${videoId}`;
+    if (userSettings.enableText === 'yes') {
+        if (userSettings.headerText) modifiedMessage = `${userSettings.headerText}\n\n${modifiedMessage}`;
+        if (userSettings.channelLink) modifiedMessage += `\n\n${userSettings.channelLink}`;
+        if (userSettings.footerText) modifiedMessage += `\n\n${userSettings.footerText}`;
+    }
+    return modifiedMessage;
+}
+
+
+async function getModifiedLink(videoId, modifiedMessage) {
+    const convertRecord = await videosRecordCollection.findOne({ convertedFrom: videoId });
+    if (convertRecord) {
+        const originalVideoId = convertRecord.uniqueLink;
+        return modifiedMessage.replace(videoId, originalVideoId);
+    } else {
+        return modifiedMessage;
+    }
+}
+
+
+async function replyToUser(ctx, modifiedLink, photos) {
+    if (photos && photos.length > 0) {
+        const photoToSend = photos[photos.length - 1].file_id;
+        const enablepicture = await collection.findOne({ chatId: ctx.from.id }) || {};
+
+        if (enablepicture.enablePicture !== false) {
+            // If enablePicture is true or not available, reply with the photo
+            await ctx.replyWithPhoto(photoToSend, { caption: modifiedLink });
+        } else {
+            await ctx.reply(modifiedLink);
+        }
+    }else{
+        ctx.reply("me hu second wala")
+        await ctx.reply(modifiedLink);
+    }
+}
+
