@@ -4,21 +4,57 @@ async function main() {
   const { sendFile } = require("./utils");
   const express = require("express");
 
-  const bot = new Telegraf('6316816141:AAGgzYw78paDGpIsLTWOWTc6dAqFwUBC5_8');
+  const bot = new Telegraf('7109135481:AAGn-YK1pE7GwhssgBU3eHZVBufAn5fT5y4');
 
   bot.start(async (ctx) => {
     try {
       ctx.reply(
-        `Hi ${ctx.message.from.first_name},\n\nI can Download Files from Terabox.\n\nSend any terabox link to download.`,
-        // Markup.inlineKeyboard([
-        //   Markup.button.url(" Channel", "https://t.me/botcodes123"),
-        //   Markup.button.url("Report bug", "https://t.me/Armanidrisi_bot"),
-        // ]),
+        `<b>Hi ${ctx.message.from.first_name},</b>\n\n<b>I can Download Files from Terabox.</b>\n\n<b>Send any terabox link to download.</b>\n\n<b>Usage:</b>\n1. <b>Please send one link at once.</b>\n2. <b>It converts links which contain videos up to 50MB. You can manually download larger videos from the following:</b> <code>https://terabox-dl-arman.vercel.app/</code> <b>and upload them to our @nutcracker_video_convert_bot to get a direct playing link.</b>`,
+        { parse_mode: "HTML" }
       );
     } catch (e) {
       console.error(e);
     }
   });
+  
+  
+
+  bot.command('help', (ctx) => {
+    ctx.reply(`You can connect on following link for any kind of help.\n\nSupport Channel - https://t.me/NetCracker_live`);
+  });
+
+  bot.command("availablebots", async (ctx) => {
+    const bot_list = [
+      [
+        "Nutcracker video convert bot.",
+        "https://t.me/nutcracker_video_convert_bot",
+      ],
+      [
+        "NutCracker Link Convert Bot",
+        "https://t.me/NutCracker_Link_Convert_Bot",
+      ],
+      [
+        "NutCracker Finance Bot",
+        "https://t.me/NutCracker_Finance_Bot",
+      ],
+      [
+        "NutCracker - Terabox Links to video",
+        "https://t.me/Terabox_Link_to_Nutcracker_bot",
+      ],
+    ];
+
+    const keyboard = bot_list.map((bot) => [{
+      text: bot[0],
+      url: bot[1]
+    }]);
+
+    await ctx.reply("Available Bots: 👇👇", {
+      reply_markup: {
+        inline_keyboard: keyboard
+      }
+    });
+  });
+
 
   bot.on("message", async (ctx) => {
     if (ctx.message && ctx.message.text) {

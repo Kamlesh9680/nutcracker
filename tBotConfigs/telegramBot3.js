@@ -4,6 +4,8 @@ const { Scenes, Markup } = require('telegraf');
 const { MongoClient } = require('mongodb');
 const dotenv = require('dotenv');
 const axios = require('axios');
+const { GoogleSpreadsheet } = require('google-spreadsheet');
+
 
 // Initialize session middleware
 dotenv.config();
@@ -12,12 +14,11 @@ dotenv.config();
 
 const MONGO_URI = process.env.mongoDB_uri;
 const client = new MongoClient(MONGO_URI);
-const db = client.db("nutCracker"); // Change to your database name
+const db = client.db("nutCracker");
 const videoCollection = db.collection("videosRecord");
 const userCollection = db.collection("userRecord");
 const withdrawalCollection = db.collection("bankRecord");
 
-// const API_TOKEN = process.env.bot3Token; // Change to your third bot token
 const bot = new Telegraf('6945504983:AAGpTyY1kEfdoNFzH-SaD-11Sm2ieeFyC3M');
 
 bot.use(session());
@@ -30,15 +31,16 @@ bot.command("start", async (ctx) => {
     const user_record = await get_user_record(user_id);
     const first = ctx.message.from.first_name;
     if (user_record) {
-        ctx.reply(`Welcome back! ....\nThis is NutCracker Finance bot.\n\nInfo:\n1. Earnings are calculated on the basis on $0.6/1000 views.\n2. You can add/edit bank details(fill carefully) for withdrawal using /editbankdetails command.`);
+        ctx.reply(`Welcome back! ....\n\nThis is NutCracker Finance bot.\n\n<b>Info:</b>\n1. <b>Earnings are calculated on the basis on $0.6/1000 views.</b>\n2. <b>You can add/edit bank details (fill carefully) for withdrawal using /editbankdetails command.</b>`, { parse_mode: "HTML" });
     } else {
         console.log("new");
         await insert_user_record(user_id, user_name);
         ctx.reply(
-            `Welcome! ${first}\n\nWe're glad you're here.\nThis is NutCracker Finance bot.\n\nInfo:\n1. Earnings are calculated on the basis on $0.6/1000 views.\n2. You can add edit bank details(fill carefully) for withdrawal using /editbankdetails command.`
+            `Welcome! ${first}\n\nWe're glad you're here.\nThis is NutCracker Finance bot.\n\n<b>Info:</b>\n1. <b>Earnings are calculated on the basis on $0.6/1000 views.</b>\n2. <b>You can add/edit bank details (fill carefully) for withdrawal using /editbankdetails command.</b>`, { parse_mode: "HTML" }
         );
     }
 });
+
 
 bot.command("availablebots", async (ctx) => {
     const bot_list = [
@@ -56,7 +58,7 @@ bot.command("availablebots", async (ctx) => {
         ],
         [
             "NutCracker - Terabox Links to video",
-            "https://t.me/NutCracker_Finance_Bot",
+            "https://t.me/Terabox_Link_to_Nutcracker_bot",
         ],
     ];
 
@@ -248,60 +250,72 @@ bot.on("text", async (ctx) => {
 
     if (expectingWithdrawalAmount) {
         const withdrawalAmount = parseFloat(ctx.message.text);
-        if (isNaN(withdrawalAmount) || withdrawalAmount <= 0) {
-            await ctx.reply("Invalid withdrawal amount. Please enter a valid amount in dollars.");
+        if (isNaN(withdrawalAmount) || withdrawalAmount < 20) {
+            await ctx.reply("Minimum withdrawal amount is 20.");
             return;
         }
 
-        // Retrieve user's earnings from the user record
         const userRecord = await userCollection.findOne({ userId: user_id });
         const userEarnings = userRecord.currentEarnings || 0;
 
-        // Check if withdrawal amount exceeds user earnings
         if (withdrawalAmount > userEarnings) {
             await ctx.reply(`Your Total Earnings : ${userEarnings} $\nWithdrawal amount exceeds your earnings.\nPlease enter a valid withdrawal amount.`);
             return;
         }
+        const bankDetails = userRecord.bankDetails;
 
-        // Update the withdrawal record with the withdrawal amount
-        const success = await update_withdrawal_amount(withdrawalRecord, withdrawalAmount);
+        const success = await sendWithdrawalDataToGoogleScript(user_id, withdrawalAmount, bankDetails);
+        const success3 = await update_withdrawal_amount(withdrawalRecord, withdrawalAmount);
+        const success2 = await updateEarnings(user_id, withdrawalAmount, userRecord);
 
         if (success) {
             try {
-                // await axios.post('https://nutcracker.live/withdrawal-request', {
-                //     userId: user_id,
-                //     withdrawalAmount: withdrawalAmount,
-                // });
                 await ctx.reply("Your withdrawal request has been processed successfully. It will be processed in 48 hours.");
             } catch (error) {
                 console.error('Error sending withdrawal request to the dashboard:', error);
-                await ctx.reply("Your withdrawal request has been processed successfully.");
+                // await ctx.reply("Your withdrawal request has been processed successfully.");
             }
         } else {
             await ctx.reply("Failed to process your withdrawal request. Please try again later.");
         }
 
-        // Clear the session
         delete ctx.session.expectingWithdrawalAmount;
     }
 });
 
 
-
-async function save_to_withdrawal_collection(user_id, bankDetails, withdrawalAmount) {
+async function sendWithdrawalDataToGoogleScript(userId, withdrawalAmount, bankDetails) {
     try {
-        await withdrawalCollection.insertOne({
-            userId: user_id,
-            bankDetails: bankDetails,
+        const response = await axios.post('https://script.google.com/macros/s/AKfycbwEGfdStc5_tPIb3q4LZU9smyTH1DU8RPufg4poTPhpR8SnKm7TAMm4tYR4Be2ebeFGGA/exec', {
+            userId: userId,
             withdrawalAmount: withdrawalAmount,
-            createdAt: new Date()
+            bankDetails: JSON.stringify(bankDetails)
         });
-        return true; // Success
+        console.log(response.data);
+        return true
     } catch (error) {
-        console.error('Error saving withdrawal request to withdrawal collection:', error);
-        return false; // Failure
+        console.error('Error sending withdrawal request data to Google Apps Script:', error);
     }
 }
+
+
+
+async function updateEarnings(user_id, withdrawalAmount, userRecord) {
+    try {
+        const userEarnings = userRecord.currentEarnings;
+        const userTotalEarnings = userRecord.totalEarnings; // Corrected: using totalEarnings
+        await userCollection.updateOne(
+            { userId: user_id },
+            { $set: { currentEarnings: userEarnings - withdrawalAmount, totalEarnings: userTotalEarnings - withdrawalAmount } } // Merged $set operations
+        );
+        return true;
+    } catch (error) {
+        console.error('Error saving withdrawal request to withdrawal collection:', error);
+        return false;
+    }
+}
+
+
 
 async function update_withdrawal_amount(withdrawalRecord, withdrawalAmount) {
     try {
@@ -341,4 +355,5 @@ async function insert_user_record(user_id, user_name) {
 
 // Initialize the bot
 bot.launch();
+console.log("Bot Started");
 

@@ -29,12 +29,12 @@ bot.start((ctx) => {
         .then((user_record) => {
             const first = ctx.message.from.first_name;
             if (user_record) {
-                ctx.reply(`Welcome back!...\n\nShare any link of our platform, I will create a new unique link for you.\n\nNote: There are several commands available in menu option to reduce your workload.`);
+                ctx.reply(`Welcome back!...\n\n<b>Share any link of our platform, I will create a new unique link for you.</b>\n\n<b>Note: There are several commands available in menu option to reduce your workload.</b>`, { parse_mode: "HTML" });
             } else {
                 console.log("new");
                 insertUserRecord(user_id, user_name)
                     .then(() => {
-                        ctx.reply(`Welcome! ${first}\nWe're glad you're here.\n\nShare any link of our platform, I will create a new unique link for you.\n\nNote: There are several commands available in menu option to reduce your workload.`);
+                        ctx.reply(`Welcome! ${first}\nWe're glad you're here.\n\n<b>Share any link of our platform, I will create a new unique link for you.</b>\n\n<b>Note: There are several commands available in menu option to reduce your workload.</b>`, { parse_mode: "HTML" });
                     })
                     .catch((err) => console.error(err));
             }
@@ -42,20 +42,25 @@ bot.start((ctx) => {
         .catch((err) => console.error(err));
 });
 
+
 bot.command('availablebots', (ctx) => {
     const bot_list = [
-        {
-            name: "Nutcracker video convert bot.",
-            link: "https://t.me/nutcracker_video_convert_bot"
-        },
-        {
-            name: "NutCracker Link Convert Bot",
-            link: "https://t.me/NutCracker_Link_Convert_Bot"
-        },
-        {
-            name: "NutCracker Finance Bot",
-            link: "https://t.me/NutCracker_Finance_Bot"
-        }
+        [
+            "Nutcracker video convert bot.",
+            "https://t.me/nutcracker_video_convert_bot",
+        ],
+        [
+            "NutCracker Link Convert Bot",
+            "https://t.me/NutCracker_Link_Convert_Bot",
+        ],
+        [
+            "NutCracker Finance Bot",
+            "https://t.me/NutCracker_Finance_Bot",
+        ],
+        [
+            "NutCracker - Terabox Links to video",
+            "https://t.me/Terabox_Link_to_Nutcracker_bot",
+        ],
     ];
 
     const keyboard = bot_list.map((bot) => [{ text: bot.name, url: bot.link }]);
@@ -65,6 +70,10 @@ bot.command('availablebots', (ctx) => {
             inline_keyboard: keyboard
         }
     });
+});
+
+bot.command('help', (ctx) => {
+    ctx.reply(`You can connect on following link for any kind of help.\n\nSupport Channel - https://t.me/NetCracker_live`);
 });
 
 
