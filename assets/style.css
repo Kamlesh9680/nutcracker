@@ -558,7 +558,14 @@ a {
 
 .plays .wrapper {
     display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.preview-wrapper {
+    display: flex;
     flex-direction: column;
+    align-items: center;
 }
 
 .plays .wrapper .video-container {
@@ -589,27 +596,29 @@ a {
     border: none;
     cursor: pointer;
 }
-.preview-wrapper{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
+
+
+
 /* main play */
 .play {
     padding: 1rem 4rem;
     height: 75vh;
     overflow-y: auto;
 }
-.plays{
+
+.plays {
     overflow-y: auto;
     height: 75vh;
 }
-.play::-webkit-scrollbar,.plays::-webkit-scrollbar {
+
+.play::-webkit-scrollbar,
+.plays::-webkit-scrollbar {
     background-color: rgb(139, 137, 137);
     width: 15px;
 }
 
-.play::-webkit-scrollbar-thumb, .plays::-webkit-scrollbar-thumb {
+.play::-webkit-scrollbar-thumb,
+.plays::-webkit-scrollbar-thumb {
     background-color: #404040;
 }
 
