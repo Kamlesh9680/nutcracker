@@ -569,7 +569,7 @@ a {
     padding: 0;
     width: 100%;
     height: 100%;
-    filter: blur(2px);
+    filter: blur(4px);
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
 }
 
@@ -612,7 +612,7 @@ a {
 }
 
 .play .text-content h4 {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 500;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
     margin-bottom: .5rem;
@@ -622,10 +622,10 @@ a {
     font-size: 16px;
     font-weight: 500;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    margin-bottom: 1rem;
     width: 90%;
     letter-spacing: .2px;
     line-height: 1.3;
+    margin: 2rem 0;
 }
 .report-and-user{
     display: flex;
