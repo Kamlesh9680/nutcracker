@@ -166,15 +166,14 @@ async def start_command(bot, message):
         await bot.send_message(
             message.chat.id,
             f"Welcome back, {userName}\n\n<b>Upload, Share and Earn.</b>",
-            parse_mode="html",
         )
     else:
         insert_user_record(user_id, userName)
         await bot.send_message(
             message.chat.id,
             f"Welcome, {userName}! We're glad you're here.\n\n<b>Upload, Share and Earn.</b>\n\nYou can start sharing videos directly and get a direct playing link.",
-            parse_mode="html",
         )
+
 
 
 
