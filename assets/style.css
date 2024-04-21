@@ -595,18 +595,18 @@ a {
     align-items: center;
 }
 /* main play */
-.play {
+.play, .plays {
     padding: 1rem 4rem;
-    height: 70vh;
+    height: 75vh;
     overflow-y: auto;
 }
 
-.play::-webkit-scrollbar {
+.play::-webkit-scrollbar,.plays::-webkit-scrollbar {
     background-color: rgb(139, 137, 137);
     width: 15px;
 }
 
-.play::-webkit-scrollbar-thumb {
+.play::-webkit-scrollbar-thumb, .plays::-webkit-scrollbar-thumb {
     background-color: #404040;
 }
 
