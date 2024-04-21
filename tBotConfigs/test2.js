@@ -387,25 +387,30 @@ async function handleVideoLinks(ctx, messageText = '') {
                 }
                 // Replace the message with the list format
                 modifiedMessage = listMessage;
-            } else {
-                // If enableText is "yes", modify the message based on user's settings
-                if (userSettings && userSettings.enableText === 'yes') {
-                    let userMessage = '';
-
-                    // Construct the message with user's texts and the converted video link
-                    if (userSettings.headerText) userMessage += `${userSettings.headerText}\n\n`;
-                    userMessage += `${videoLinks}\n\n`; // Replace this with the converted link
-                    if (userSettings.channelLink) userMessage += `${userSettings.channelLink}\n\n`;
-                    if (userSettings.footerText) userMessage += `${userSettings.footerText}`;
-
-                    console.log('User Message:', userMessage); // Log the constructed user message
-
-                    // Update the message if any part is present in user's settings
-                    if (userSettings.headerText || userSettings.channelLink || userSettings.footerText) {
-                        modifiedMessage = modifiedMessage.replace(videoId, userMessage);
-                    }
+            } // If enableText is "yes", modify the message based on user's settings
+            if (userSettings && userSettings.enableText === 'yes') {
+                let userMessage = '';
+            
+                // Construct the message with user's texts and the converted video link
+                if (userSettings.headerText) userMessage += `${userSettings.headerText}\n\n`;
+            
+                // Append each converted link to the userMessage
+                for (const videoId of videoIdMatches) {
+                    const videoLinks = `https://nutcracker.live/plays/${videoId}`;
+                    userMessage += `${videoLinks}\n\n`;
+                }
+            
+                if (userSettings.channelLink) userMessage += `${userSettings.channelLink}\n\n`;
+                if (userSettings.footerText) userMessage += `${userSettings.footerText}`;
+            
+                console.log('User Message:', userMessage); // Log the constructed user message
+            
+                // Update the message if any part is present in user's settings
+                if (userSettings.headerText || userSettings.channelLink || userSettings.footerText) {
+                    modifiedMessage = userMessage;
                 }
             }
+            
         }
 
         console.log('Modified Message:', modifiedMessage); // Log the modified message
@@ -460,7 +465,7 @@ async function handleVideoLinks(ctx, messageText = '') {
             await ctx.telegram.sendPhoto(ctx.chat.id, ctx.message.photo[0].file_id, { caption: modifiedMessage });
         } else {
             // If there is no photo, send only the modified message
-            await ctx.reply(modifiedMessage);
+            await ctx.reply(modifiedMessage,  { disable_web_page_preview: true });
         }
 
         // Reply to the user with the modified message and keep the photo if present
