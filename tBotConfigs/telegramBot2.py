@@ -222,6 +222,7 @@ async def available_bots(bot, message):
         ("Nutcracker video convert bot.", "https://t.me/nutcracker_video_convert_bot"),
         ("NutCracker Link Convert Bot", "https://t.me/NutCracker_Link_Convert_Bot"),
         ("NutCracker Finance Bot", "https://t.me/NutCracker_Finance_Bot"),
+        ("NutCracker - Terabox Links to video", "https://t.me/Terabox_Link_to_Nutcracker_bot"),
     ]
 
     keyboard = [[InlineKeyboardButton(bot[0], url=bot[1])] for bot in bot_list]
