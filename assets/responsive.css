@@ -178,4 +178,7 @@
     .play .text-content p {
         width: 100%;
     }
+    .report-and-user{
+        flex-direction: column;
+    }
 }

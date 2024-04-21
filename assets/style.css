@@ -629,8 +629,9 @@ a {
 }
 .report-and-user{
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: 16px;
+    margin-bottom: 2rem;
 }
 .play .user-info{
     padding: .7rem 1rem;
@@ -641,7 +642,6 @@ a {
     width: fit-content;
     gap: 5px;
     border-radius: 5px;
-    margin-bottom: 2rem;
 }
 .report-button a{
     text-decoration: none;
