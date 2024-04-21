@@ -602,6 +602,7 @@ a {
 }
 .plays{
     overflow-y: auto;
+    height: 75vh;
 }
 .play::-webkit-scrollbar,.plays::-webkit-scrollbar {
     background-color: rgb(139, 137, 137);
