@@ -552,6 +552,7 @@ a {
     padding: 0rem 4rem;
     width: 100%;
     display: flex;
+    height: fit-content !important;
     align-items: center;
     justify-content: center;
 }
