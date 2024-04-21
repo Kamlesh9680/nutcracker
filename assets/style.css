@@ -589,7 +589,11 @@ a {
     border: none;
     cursor: pointer;
 }
-
+.preview-wrapper{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 /* main play */
 .play {
     padding: 1rem 4rem;
