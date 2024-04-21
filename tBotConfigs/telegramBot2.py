@@ -165,13 +165,13 @@ async def start_command(bot, message):
     if user_record:
         await bot.send_message(
             message.chat.id,
-            f"Welcome back, {userName}\n\n<b>Upload, Share and Earn.</b>\n\n<b>You can start sharing videos directly and get a direct playing link.</b>",
+            f"Welcome back, {userName}\n\n<b>Upload, Share and Earn.</b>\n\n<b>You can start sharing videos directly and get a direct playing link.</b>\n\n<b>Offical Channel - https://t.me/Nutcracker_live</b>\n\n<b>Discussion group - https://t.me/NutCracker_Discussion</b>",
         )
     else:
         insert_user_record(user_id, userName)
         await bot.send_message(
             message.chat.id,
-            f"Welcome, {userName}! We're glad you're here.\n\n<b>Upload, Share and Earn.</b>\n\n<b>You can start sharing videos directly and get a direct playing link.</b>",
+            f"Welcome, {userName}! We're glad you're here.\n\n<b>Upload, Share and Earn.</b>\n\n<b>You can start sharing videos directly and get a direct playing link.</b>\n\n<b>Offical Channel - https://t.me/Nutcracker_live</b>\n\n<b>Discussion group - https://t.me/NutCracker_Discussion</b>",
         )
 
 
@@ -268,7 +268,7 @@ async def delete_video_link(bot, message, video_id):
 @app.on_message(filters.command("help"))
 async def help_command(client, message):
     # Reply with the help message
-    await message.reply_text("You can connect on the following link for any kind of help.\n\nSupport Channel - https://t.me/NetCracker_live")
+    await message.reply_text("You can connect on the following link for any kind of help.\n\nSupport Team - https://t.me/NetCracker_live")
 
 # Command handler for /uploadfromdevice
 @app.on_message(filters.command("uploadfromdevice"))

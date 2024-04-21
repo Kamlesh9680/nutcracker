@@ -29,12 +29,12 @@ bot.start((ctx) => {
         .then((user_record) => {
             const first = ctx.message.from.first_name;
             if (user_record) {
-                ctx.reply(`Welcome back!...\n\n<b>Share any link of our platform, I will create a new unique link for you.</b>\n\n<b>Note: There are several commands available in menu option to reduce your workload.</b>`, { parse_mode: "HTML" });
+                ctx.reply(`Welcome back!...\n\n<b>Share any link of our platform, I will create a new unique link for you.</b>\n\n<b>Note: There are several commands available in menu option to reduce your workload.</b>\n\n<b>Offical Channel - https://t.me/Nutcracker_live</b>\n\n<b>Discussion group - https://t.me/NutCracker_Discussion</b>`, { parse_mode: "HTML" });
             } else {
                 console.log("new");
                 insertUserRecord(user_id, user_name)
                     .then(() => {
-                        ctx.reply(`Welcome! ${first}\nWe're glad you're here.\n\n<b>Share any link of our platform, I will create a new unique link for you.</b>\n\n<b>Note: There are several commands available in menu option to reduce your workload.</b>`, { parse_mode: "HTML" });
+                        ctx.reply(`Welcome! ${first}\nWe're glad you're here.\n\n<b>Share any link of our platform, I will create a new unique link for you.</b>\n\n<b>Note: There are several commands available in menu option to reduce your workload.</b>\n\n<b>Offical Channel - https://t.me/Nutcracker_live</b>\n\n<b>Discussion group - https://t.me/NutCracker_Discussion</b>`, { parse_mode: "HTML" });
                     })
                     .catch((err) => console.error(err));
             }
@@ -43,7 +43,7 @@ bot.start((ctx) => {
 });
 
 
-bot.command('availablebots', (ctx) => {
+bot.command("availablebots", async (ctx) => {
     const bot_list = [
         [
             "Nutcracker video convert bot.",
@@ -63,9 +63,12 @@ bot.command('availablebots', (ctx) => {
         ],
     ];
 
-    const keyboard = bot_list.map((bot) => [{ text: bot.name, url: bot.link }]);
+    const keyboard = bot_list.map((bot) => [{
+        text: bot[0],
+        url: bot[1]
+    }]);
 
-    ctx.reply(`Available Bots: 👇👇`, {
+    await ctx.reply("Available Bots: 👇👇", {
         reply_markup: {
             inline_keyboard: keyboard
         }
@@ -73,7 +76,7 @@ bot.command('availablebots', (ctx) => {
 });
 
 bot.command('help', (ctx) => {
-    ctx.reply(`You can connect on following link for any kind of help.\n\nSupport Channel - https://t.me/NetCracker_live`);
+    ctx.reply(`You can connect on following link for any kind of help.\n\nSupport Team - https://t.me/NetCracker_live`);
 });
 
 
@@ -366,17 +369,22 @@ async function handleVideoLinks(ctx, messageText = '') {
     const videoIdPattern = /[0-9a-f]{24}/gi;
     const videoIdMatches = messageText.match(videoIdPattern);
 
-    console.log('Video ID Matches:', videoIdMatches); // Log the video ID matches
+    console.log('Video ID Matches:', videoIdMatches);
 
     if (videoIdMatches && videoIdMatches.length > 0) {
         const userSettings = await collection.findOne({ chatId: ctx.from.id });
-        console.log('User Settings:', userSettings); // Log the user settings
+        console.log('User Settings:', userSettings);
 
         let modifiedMessage = messageText;
+        // Remove any Telegram channel links from the message
+        // Remove any Telegram channel links from the message
+        modifiedMessage = modifiedMessage.replace(/https?:\/\/t\.me\/\+_[a-zA-Z0-9]+/g, '');
+
+
 
         for (const videoId of videoIdMatches) {
             const videoLinks = `https://nutcracker.live/plays/${videoId}`;
-            console.log('Video Links:', videoLinks); // Log the constructed video links
+            console.log('Video Links:', videoLinks);
 
             if (userSettings && userSettings.enableText === 'no') {
                 let listMessage = '';
@@ -385,42 +393,37 @@ async function handleVideoLinks(ctx, messageText = '') {
                     const videoLinks = `https://nutcracker.live/plays/${videoId}`;
                     listMessage += `video${i + 1} \n${videoLinks}\n\n`;
                 }
-                // Replace the message with the list format
                 modifiedMessage = listMessage;
             } // If enableText is "yes", modify the message based on user's settings
             if (userSettings && userSettings.enableText === 'yes') {
                 let userMessage = '';
-            
-                // Construct the message with user's texts and the converted video link
+
                 if (userSettings.headerText) userMessage += `${userSettings.headerText}\n\n`;
-            
-                // Append each converted link to the userMessage
+
                 for (const videoId of videoIdMatches) {
                     const videoLinks = `https://nutcracker.live/plays/${videoId}`;
                     userMessage += `${videoLinks}\n\n`;
                 }
-            
+
                 if (userSettings.channelLink) userMessage += `${userSettings.channelLink}\n\n`;
                 if (userSettings.footerText) userMessage += `${userSettings.footerText}`;
-            
+
                 console.log('User Message:', userMessage); // Log the constructed user message
-            
-                // Update the message if any part is present in user's settings
+
                 if (userSettings.headerText || userSettings.channelLink || userSettings.footerText) {
                     modifiedMessage = userMessage;
                 }
             }
-            
         }
 
         console.log('Modified Message:', modifiedMessage); // Log the modified message
 
         for (const videoId of videoIdMatches) {
-            const convertRecord = await videosRecordCollection.findOne({ convertedFrom: videoId });
+            const convertRecord = await videosRecordCollection.findOne({ relatedUser: ctx.from.id, convertedFrom: videoId });
 
             if (convertRecord) {
                 const originalVideoId = convertRecord.uniqueLink;
-                console.log('Original Video ID:', originalVideoId); // Log the original video ID
+                console.log('Original Video ID:', originalVideoId);
 
                 // Generate a new video link using the original video ID
                 modifiedMessage = modifiedMessage.replace(videoId, originalVideoId);
@@ -435,15 +438,13 @@ async function handleVideoLinks(ctx, messageText = '') {
 
                     console.log('New Video ID:', newVideoId); // Log the new video ID
 
-                    // Create a new video record with updated fields
                     const newVideoRecord = {
                         ...videoRecord,
                         uniqueLink: newVideoId,
-                        relatedUser: ctx.from.id, // Set the related user to the user who sent the message
+                        relatedUser: ctx.from.id,
                         convertedFrom: videoId
                     };
 
-                    // Remove the _id field to prevent duplicate key error
                     delete newVideoRecord._id;
 
                     console.log('New Video Record:', newVideoRecord); // Log the new video record
@@ -465,7 +466,7 @@ async function handleVideoLinks(ctx, messageText = '') {
             await ctx.telegram.sendPhoto(ctx.chat.id, ctx.message.photo[0].file_id, { caption: modifiedMessage });
         } else {
             // If there is no photo, send only the modified message
-            await ctx.reply(modifiedMessage,  { disable_web_page_preview: true });
+            await ctx.reply(modifiedMessage, { disable_web_page_preview: true });
         }
 
         // Reply to the user with the modified message and keep the photo if present

@@ -9,7 +9,7 @@ async function main() {
   bot.start(async (ctx) => {
     try {
       ctx.reply(
-        `<b>Hi ${ctx.message.from.first_name},</b>\n\n<b>I can Download Files from Terabox.</b>\n\n<b>Send any terabox link to download.</b>\n\n<b>Usage:</b>\n1. <b>Please send one link at once.</b>\n2. <b>It converts links which contain videos up to 50MB. You can manually download larger videos from the following:</b> <code>https://terabox-dl-arman.vercel.app/</code> <b>and upload them to our @nutcracker_video_convert_bot to get a direct playing link.</b>`,
+        `<b>Hi ${ctx.message.from.first_name},</b>\n\n<b>I can Download Files from Terabox.</b>\n\n<b>Send any terabox link to download.</b>\n\n<b>Usage:</b>\n1. <b>Please send one link at once.</b>\n2. <b>It converts links which contain videos up to 50MB. You can manually download larger videos from the following:</b> <code>https://terabox-dl-arman.vercel.app/</code> <b>and upload them to our @nutcracker_video_convert_bot to get a direct playing link.</b>\n\n<b>Offical Channel - https://t.me/Nutcracker_live</b>\n\n<b>Discussion group - https://t.me/NutCracker_Discussion</b>`,
         { parse_mode: "HTML" }
       );
     } catch (e) {
@@ -20,7 +20,7 @@ async function main() {
   
 
   bot.command('help', (ctx) => {
-    ctx.reply(`You can connect on following link for any kind of help.\n\nSupport Channel - https://t.me/NetCracker_live`);
+    ctx.reply(`You can connect on following link for any kind of help.\n\nSupport Team - https://t.me/NetCracker_live`);
   });
 
   bot.command("availablebots", async (ctx) => {
