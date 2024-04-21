@@ -565,6 +565,7 @@ a {
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin-bottom: 1.5rem;
 }
 
 .plays .wrapper .video-container {
