@@ -595,12 +595,14 @@ a {
     align-items: center;
 }
 /* main play */
-.play, .playsp {
+.play {
     padding: 1rem 4rem;
     height: 75vh;
     overflow-y: auto;
 }
-
+.playsp{
+    overflow-y: auto;
+}
 .play::-webkit-scrollbar,.playsp::-webkit-scrollbar {
     background-color: rgb(139, 137, 137);
     width: 15px;
