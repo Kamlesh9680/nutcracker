@@ -552,7 +552,6 @@ a {
     padding: 0rem 4rem;
     width: 100%;
     display: flex;
-    height: fit-content !important;
     align-items: center;
     justify-content: center;
 }
@@ -596,18 +595,18 @@ a {
     align-items: center;
 }
 /* main play */
-.play, .plays {
+.play, .playsp {
     padding: 1rem 4rem;
     height: 75vh;
     overflow-y: auto;
 }
 
-.play::-webkit-scrollbar,.plays::-webkit-scrollbar {
+.play::-webkit-scrollbar,.playsp::-webkit-scrollbar {
     background-color: rgb(139, 137, 137);
     width: 15px;
 }
 
-.play::-webkit-scrollbar-thumb, .plays::-webkit-scrollbar-thumb {
+.play::-webkit-scrollbar-thumb, .playsp::-webkit-scrollbar-thumb {
     background-color: #404040;
 }
 
