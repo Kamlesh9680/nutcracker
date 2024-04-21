@@ -596,7 +596,7 @@ a {
 
 .play::-webkit-scrollbar {
     background-color: rgb(139, 137, 137);
-    width: 8px;
+    width: 15px;
 }
 
 .play::-webkit-scrollbar-thumb {
