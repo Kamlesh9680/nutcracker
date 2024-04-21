@@ -260,6 +260,10 @@ async def delete_video_link(bot, message, video_id):
         await bot.send_message(message.chat.id, "An error occurred while deleting the video link. Please try again later.")
 
 
+@app.on_message(filters.command("help"))
+async def help_command(client, message):
+    # Reply with the help message
+    await message.reply_text("You can connect on the following link for any kind of help.\n\nSupport Channel - https://t.me/NetCracker_live")
 
 # Command handler for /uploadfromdevice
 @app.on_message(filters.command("uploadfromdevice"))
