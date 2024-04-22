@@ -13,4 +13,3 @@ viewCount        7
  app.command('start', async (ctx) => {
             ctx.reply('Start s');
         });
-cc
