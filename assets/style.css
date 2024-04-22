@@ -600,25 +600,25 @@ a {
 
 
 /* main play */
-.play {
+.playp {
     padding: 1rem 4rem;
-    height: 75vh;
+    /* height: 75vh; */
     overflow-y: auto;
 }
 
-.plays {
+.playsp {
     overflow-y: auto;
-    height: 75vh;
+    /* height: 75vh; */
 }
 
-.play::-webkit-scrollbar,
-.plays::-webkit-scrollbar {
+.playp::-webkit-scrollbar,
+.playsp::-webkit-scrollbar {
     background-color: rgb(139, 137, 137);
     width: 15px;
 }
 
-.play::-webkit-scrollbar-thumb,
-.plays::-webkit-scrollbar-thumb {
+.playp::-webkit-scrollbar-thumb,
+.playsp::-webkit-scrollbar-thumb {
     background-color: #404040;
 }
 

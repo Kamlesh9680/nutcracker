@@ -10,6 +10,29 @@
     <link href="https://vjs.zencdn.net/7.14.3/video-js.css" rel="stylesheet">
     <script type='text/javascript'
         src='//groundlesscobwebmiller.com/98/ef/66/98ef66ad81a8169367108092544a0c46.js'></script>
+    <style>
+        .mobileShow {
+            display: none;
+        }
+
+        /* Smartphone Portrait and Landscape */
+        @media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
+            .mobileShow {
+                display: inline;
+            }
+        }
+
+        .mobileHide {
+            display: inline;
+        }
+
+        /* Smartphone Portrait and Landscape */
+        @media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
+            .mobileHide {
+                display: none;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -116,10 +139,12 @@
                         a promise of discovery and adventure. And as I basked in the warmth of the morning sun, I
                         couldn't help but feel grateful for the simple beauty of this quaint little town and the
                         memories it held.</p>
-                    <script
-                        type="text/javascript"> 	atOptions = { 'key': '4e8c1f962a91533eab04b3af743a5989', 'format': 'iframe', 'height': 90, 'width': 728, 'params': {} }; </script>
-                    <script type="text/javascript"
-                        src="//groundlesscobwebmiller.com/4e8c1f962a91533eab04b3af743a5989/invoke.js"></script>
+                    <div class="mobileHide">
+                        <script
+                            type="text/javascript"> 	atOptions = { 'key': '4e8c1f962a91533eab04b3af743a5989', 'format': 'iframe', 'height': 90, 'width': 728, 'params': {} }; </script>
+                        <script type="text/javascript"
+                            src="//groundlesscobwebmiller.com/4e8c1f962a91533eab04b3af743a5989/invoke.js"></script>
+                    </div>
                 </div>
 
             </div>
