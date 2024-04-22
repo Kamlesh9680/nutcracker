@@ -33,8 +33,8 @@
             }
         }
     </style>
-    <script type='text/javascript'
-        src='//groundlesscobwebmiller.com/98/ef/66/98ef66ad81a8169367108092544a0c46.js'></script>
+    <!-- <script type='text/javascript'
+        src='//groundlesscobwebmiller.com/98/ef/66/98ef66ad81a8169367108092544a0c46.js'></script> -->
 </head>
 
 <body>
@@ -213,6 +213,13 @@
                 </div>
             </div>
         </main>
+        <div id="myadModal" class="admodal">
+            <div class="admodal-content">
+                <h2 class="mb-3">Welcome!</h2>
+                <p class="mb-4">Please click the button below to proceed with video.</p>
+                <a id="popupButton" href="https://groundlesscobwebmiller.com/i1xyxgrn?key=a3e1613e027c0f7ba2f1aa7d9b9a0897" target="_blank">Continue</a>
+            </div>
+        </div>
         <footer class="footer">
             <div class="footer-wrapper">
                 <div class="footer-txt">
@@ -230,6 +237,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/1.11.0/videojs.ima.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/6.6.5/videojs.ads.min.js"></script>
     <script src="//imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
+    <script>
+        var modal = document.getElementById('myadModal');
+
+        // Get the button that opens the modal
+        var btn = document.getElementById("popupButton");
+
+        btn.onclick = function () {
+            modal.style.display = "none";
+        }
+
+        // Prevent users from accessing the page until they click the button
+        window.onload = function () {
+            modal.style.display = "block";
+        }
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var player = videojs('my-video');
@@ -349,6 +371,7 @@
             });
         });
     </script>
+
     <script type='text/javascript'
         src='//groundlesscobwebmiller.com/34/79/3e/34793efebb9ae76ea8c5550a1b99c9d2.js'></script>
 </body>

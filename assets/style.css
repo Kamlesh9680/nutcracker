@@ -673,3 +673,34 @@ a {
     padding: .5rem 1rem;
     color: white;
 }
+
+.admodal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.admodal-content {
+    background-color: #fff;
+    color: #000;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 2rem;
+    border: 1px solid #6d6d6d;
+    border-radius: 8px;
+    width: 80%; /* Could be more or less, depending on screen size */
+}
+.admodal-content p{
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+}
+#popupButton{
+    padding: 10px 20px;
+    background-color: #0097B2;
+    color: #fff;
+}
