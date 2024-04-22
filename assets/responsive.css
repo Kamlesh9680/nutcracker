@@ -164,6 +164,9 @@
     .playp{
         padding: 1rem;
     }
+    .play{
+        padding: 1rem 0;
+    }
     .plays{
         padding: 3rem 1rem;
     }
