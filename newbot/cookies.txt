@@ -1,0 +1,9 @@
+# Netscape HTTP Cookie File
+# http://curl.haxx.se/rfc/cookie_spec.html
+# This is a generated file!  Do not edit.
+
+www.terabox.com	FALSE	/	FALSE	0	csrfToken	hcR8yK7_nqW6V-ytX3Qjaw4S
+.terabox.com	TRUE	/	FALSE	1749096805	_ga	GA1.1.234625196.1714536787
+.terabox.com	TRUE	/	FALSE	1746072787	_clck	1higdc8%7C2%7Cfle%7C0%7C1582
+.terabox.com	TRUE	/	FALSE	1714623205	_clsk	y2nm02%7C1714536805519%7C2%7C1%7Cp.clarity.ms%2Fcollect
+.terabox.com	TRUE	/	FALSE	1749096807	_ga_VRPKGB01VJ	GS1.1.1714536786.1.1.1714536807.0.0.0
