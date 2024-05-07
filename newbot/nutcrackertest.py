@@ -9,7 +9,7 @@ from telegram.ext import Application
 
 # Replace with your Telegram bot token
 TELEGRAM_BOT_TOKEN = "6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE"
-my_queue = queue.Queue()
+# my_queue = queue.Queue()
 
 def start(update: Update, context: CallbackContext) -> None:
     update.message.reply_text("Hello! ENTER THE TERABOX LINK.")
