@@ -3,8 +3,9 @@ import requests
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackContext
 import telegram.ext.filters as filters
-from asyncio import queue
+# from asyncio import queue
 from telegram import Bot
+from telegram.ext import Application
 
 # Replace with your Telegram bot token
 TELEGRAM_BOT_TOKEN = "6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE"
@@ -45,18 +46,18 @@ def attach_video(update: Update, context: CallbackContext) -> None:
         update.message.reply_text(f"Error attaching the video: {str(e)}")
 
 def main() -> None:
-    bot = Bot(token='6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE')
     
-    updater = Updater(bot=bot, update_queue=my_queue)
-    dispatcher = updater.dispatcher
+    application = Application.builder().token(6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE).build()
+    
+    dispatcher = application.dispatcher
 
     # Handlers
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(MessageHandler(Filters.TEXT & ~Filters.COMMAND, download_video))
     dispatcher.add_handler(MessageHandler(Filters.TEXT & ~Filters.COMMAND, attach_video))
 
-    updater.start_polling()
-    updater.idle()
+    application.run_polling()
+    application.idle()
 
 if __name__ == "__main__":
     main()
