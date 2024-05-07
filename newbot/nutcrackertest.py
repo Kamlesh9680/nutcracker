@@ -42,7 +42,7 @@ def attach_video(update: Update, context: CallbackContext) -> None:
         update.message.reply_text(f"Error attaching the video: {str(e)}")
 
 def main() -> None:
-    updater = Updater(token=TELEGRAM_BOT_TOKEN)
+    updater = Updater(token=6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE)
     dispatcher = updater.dispatcher
 
     # Handlers
