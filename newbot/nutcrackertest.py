@@ -3,7 +3,7 @@ import requests
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackContext
 import telegram.ext.filters as filters
-from telegram import Bot
+from telegram import Bot, UpdateQueue
 
 # Replace with your Telegram bot token
 TELEGRAM_BOT_TOKEN = "6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE"
