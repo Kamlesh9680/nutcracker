@@ -1,7 +1,8 @@
 import os
 import requests
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackContext
+import telegram.ext.filters as filters
 
 # Replace with your Telegram bot token
 TELEGRAM_BOT_TOKEN = "6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE"
@@ -46,8 +47,8 @@ def main() -> None:
 
     # Handlers
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, download_video))
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, attach_video))
+    dispatcher.add_handler(MessageHandler(Filters.TEXT & ~Filters.COMMAND, download_video))
+    dispatcher.add_handler(MessageHandler(Filters.TEXT & ~Filters.COMMAND, attach_video))
 
     updater.start_polling()
     updater.idle()
