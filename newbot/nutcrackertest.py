@@ -44,7 +44,11 @@ def attach_video(update: Update, context: CallbackContext) -> None:
 
 def main() -> None:
     bot = Bot(token='6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE')
-    updater = Updater(bot=bot)
+    # Create an UpdateQueue object
+    update_queue = UpdateQueue()
+
+    # Initialize the Updater with your bot and update_queue
+    updater = Updater(bot=bot, update_queue=update_queue, use_context=True)
     dispatcher = updater.dispatcher
 
     # Handlers
