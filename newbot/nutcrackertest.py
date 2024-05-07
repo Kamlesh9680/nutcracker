@@ -3,6 +3,7 @@ import requests
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackContext
 import telegram.ext.filters as filters
+from telegram import Bot
 
 # Replace with your Telegram bot token
 TELEGRAM_BOT_TOKEN = "6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE"
@@ -42,7 +43,8 @@ def attach_video(update: Update, context: CallbackContext) -> None:
         update.message.reply_text(f"Error attaching the video: {str(e)}")
 
 def main() -> None:
-    updater = Updater(token='6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE')
+    bot = Bot(token='6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE')
+    updater = Updater(bot=bot, use_context=True)
     dispatcher = updater.dispatcher
 
     # Handlers
