@@ -3,9 +3,12 @@ import requests
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackContext
 import telegram.ext.filters as filters
+from asyncio import queue
+from telegram import Bot
 
 # Replace with your Telegram bot token
 TELEGRAM_BOT_TOKEN = "6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE"
+my_queue = queue.Queue()
 
 def start(update: Update, context: CallbackContext) -> None:
     update.message.reply_text("Hello! ENTER THE TERABOX LINK.")
@@ -42,7 +45,9 @@ def attach_video(update: Update, context: CallbackContext) -> None:
         update.message.reply_text(f"Error attaching the video: {str(e)}")
 
 def main() -> None:
-    updater = Updater(token=6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE)
+    bot = Bot(token='6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE')
+    
+    updater = Updater(bot=bot, update_queue=my_queue)
     dispatcher = updater.dispatcher
 
     # Handlers
