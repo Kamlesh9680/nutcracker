@@ -376,7 +376,7 @@ async function handleVideoLinks(ctx, messageText = '') {
         console.log('User Settings:', userSettings);
 
         let modifiedMessage = messageText;
-        modifiedMessage = modifiedMessage.replace(/https?:\/\/t\.me\/\+_[a-zA-Z0-9]+/g, '');
+        // modifiedMessage = modifiedMessage.replace(/https?:\/\/t\.me\/\+_[a-zA-Z0-9]+/g, '');
 
 
 
@@ -402,7 +402,7 @@ async function handleVideoLinks(ctx, messageText = '') {
                 if (userSettings.channelLink) userMessage += `${userSettings.channelLink}\n\n`;
                 if (userSettings.footerText) userMessage += `${userSettings.footerText}`;
 
-                console.log('User Message:', userMessage); // Log the constructed user message
+                console.log('User Message:', userMessage);
 
                 if (userSettings.headerText || userSettings.channelLink || userSettings.footerText) {
                     modifiedMessage = userMessage;
@@ -420,8 +420,9 @@ async function handleVideoLinks(ctx, messageText = '') {
                     userMessage = `${userMessage.replace(videoId, videoLinks)}\n`;
                 }
 
-                if (userSettings.channelLink) userMessage += `${userSettings.channelLink}\n\n`;
-                if (userSettings.footerText) userMessage += `${userSettings.footerText}`;
+                // if (userSettings.channelLink) userMessage += `${userSettings.channelLink}\n\n`;
+                userMessage = userMessage.replace(/https?:\/\/t\.me\/\+_[a-zA-Z0-9]+/g, userSettings.channelLink ? userSettings.channelLink : '');
+                if (userSettings.footerText) userMessage += `\n${userSettings.footerText}`;
 
                 console.log('User Message:', userMessage); // Log the constructed user message
 

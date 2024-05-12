@@ -254,3 +254,128 @@ async function replyToUser(ctx, modifiedLink, photos) {
     }
 }
 
+
+
+
+
+
+// 12-5-2024 Updated Version
+async function handleVideoLinks(ctx, messageText = '') {
+    console.log('Message Text:', messageText); // Log the message text
+
+    // Regular expression pattern to match the video ID
+    const videoIdPattern = /[0-9a-f]{24}/gi;
+    const videoIdMatches = messageText.match(videoIdPattern);
+
+    console.log('Video ID Matches:', videoIdMatches);
+
+    if (videoIdMatches && videoIdMatches.length > 0) {
+        const userSettings = await collection.findOne({ chatId: ctx.from.id });
+        console.log('User Settings:', userSettings);
+
+        let modifiedMessage = messageText;
+        // Remove any Telegram channel links from the message
+        // Remove any Telegram channel links from the message
+        modifiedMessage = modifiedMessage.replace(/https?:\/\/t\.me\/\+_[a-zA-Z0-9]+/g, '');
+
+
+
+        for (const videoId of videoIdMatches) {
+            const videoLinks = `https://nutcracker.live/plays/${videoId}`;
+            console.log('Video Links:', videoLinks);
+
+            if (userSettings && userSettings.enableText === 'no') {
+                let listMessage = '';
+                for (let i = 0; i < videoIdMatches.length; i++) {
+                    const videoId = videoIdMatches[i];
+                    const videoLinks = `https://nutcracker.live/plays/${videoId}`;
+                    listMessage += `video${i + 1} \n${videoLinks}\n\n`;
+                }
+                modifiedMessage = listMessage;
+            } // If enableText is "yes", modify the message based on user's settings
+            if (userSettings && userSettings.enableText === 'yes') {
+                let userMessage = '';
+
+                if (userSettings.headerText) userMessage += `${userSettings.headerText}\n\n`;
+
+                for (const videoId of videoIdMatches) {
+                    const videoLinks = `https://nutcracker.live/plays/${videoId}`;
+                    userMessage += `${videoLinks}\n\n`;
+                }
+
+                if (userSettings.channelLink) userMessage += `${userSettings.channelLink}\n\n`;
+                if (userSettings.footerText) userMessage += `${userSettings.footerText}`;
+
+                console.log('User Message:', userMessage); // Log the constructed user message
+
+                if (userSettings.headerText || userSettings.channelLink || userSettings.footerText) {
+                    modifiedMessage = userMessage;
+                }
+            }
+        }
+
+        console.log('Modified Message:', modifiedMessage); // Log the modified message
+
+        for (const videoId of videoIdMatches) {
+            const convertRecord = await videosRecordCollection.findOne({ relatedUser: ctx.from.id, convertedFrom: videoId });
+
+            if (convertRecord) {
+                const originalVideoId = convertRecord.uniqueLink;
+                console.log('Original Video ID:', originalVideoId);
+
+                // Generate a new video link using the original video ID
+                modifiedMessage = modifiedMessage.replace(videoId, originalVideoId);
+            } else {
+                const videoRecord = await videosRecordCollection.findOne({ uniqueLink: videoId });
+
+                console.log('Video Record:', videoRecord); // Log the video record
+
+                if (videoRecord) {
+                    // Generate a new video ID for the user
+                    const newVideoId = generateRandomHex(24);
+
+                    console.log('New Video ID:', newVideoId); // Log the new video ID
+
+                    const newVideoRecord = {
+                        ...videoRecord,
+                        uniqueLink: newVideoId,
+                        relatedUser: ctx.from.id,
+                        convertedFrom: videoId
+                    };
+
+                    delete newVideoRecord._id;
+
+                    console.log('New Video Record:', newVideoRecord); // Log the new video record
+
+                    // Store the new video record in the videosRecord collection
+                    await videosRecordCollection.insertOne(newVideoRecord);
+
+                    // Generate a new video link using the updated video ID
+                    modifiedMessage = modifiedMessage.replace(videoId, newVideoId);
+                } else {
+                    ctx.reply('Video not found.');
+                }
+            }
+        }
+
+        // Reply to the user with the modified message and keep the photo if present
+        if (ctx.message.photo && ctx.message.photo.length > 0) {
+            // If there is a photo, send the modified message with the photo
+            await ctx.telegram.sendPhoto(ctx.chat.id, ctx.message.photo[0].file_id, { caption: modifiedMessage });
+        } else {
+            // If there is no photo, send only the modified message
+            await ctx.reply(modifiedMessage, { disable_web_page_preview: true });
+        }
+
+        // Reply to the user with the modified message and keep the photo if present
+        // ctx.reply(modifiedMessage, { caption: ctx.message.caption, photo: ctx.message.photo });
+
+        // await storeConvertedLinks(ctx.from.id, videoIdMatches.length);
+
+        // Update the convertedLinksMap for this user
+        if (!convertedLinksMap.has(ctx.from.id)) {
+            convertedLinksMap.set(ctx.from.id, []);
+        }
+        convertedLinksMap.get(ctx.from.id).push(...videoIdMatches);
+    }
+}

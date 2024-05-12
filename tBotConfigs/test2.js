@@ -362,6 +362,7 @@ bot.on('message', async (ctx) => {
 
 
 
+
 async function handleVideoLinks(ctx, messageText = '') {
     console.log('Message Text:', messageText); // Log the message text
 
@@ -376,9 +377,7 @@ async function handleVideoLinks(ctx, messageText = '') {
         console.log('User Settings:', userSettings);
 
         let modifiedMessage = messageText;
-        // Remove any Telegram channel links from the message
-        // Remove any Telegram channel links from the message
-        modifiedMessage = modifiedMessage.replace(/https?:\/\/t\.me\/\+_[a-zA-Z0-9]+/g, '');
+        // modifiedMessage = modifiedMessage.replace(/https?:\/\/t\.me\/\+_[a-zA-Z0-9]+/g, '');
 
 
 
@@ -387,26 +386,44 @@ async function handleVideoLinks(ctx, messageText = '') {
             console.log('Video Links:', videoLinks);
 
             if (userSettings && userSettings.enableText === 'no') {
-                let listMessage = '';
-                for (let i = 0; i < videoIdMatches.length; i++) {
-                    const videoId = videoIdMatches[i];
-                    const videoLinks = `https://nutcracker.live/plays/${videoId}`;
-                    listMessage += `video${i + 1} \n${videoLinks}\n\n`;
-                }
-                modifiedMessage = listMessage;
-            } // If enableText is "yes", modify the message based on user's settings
-            if (userSettings && userSettings.enableText === 'yes') {
                 let userMessage = '';
 
                 if (userSettings.headerText) userMessage += `${userSettings.headerText}\n\n`;
 
                 for (const videoId of videoIdMatches) {
-                    const videoLinks = `https://nutcracker.live/plays/${videoId}`;
-                    userMessage += `${videoLinks}\n\n`;
+                    let listMessage = '';
+                    for (let i = 0; i < videoIdMatches.length; i++) {
+                        const videoId = videoIdMatches[i];
+                        const videoLinks = `https://nutcracker.live/plays/${videoId}`;
+                        listMessage += `video${i + 1} \n${videoLinks}\n\n`;
+                    }
+                    userMessage += `${listMessage}`;
                 }
 
                 if (userSettings.channelLink) userMessage += `${userSettings.channelLink}\n\n`;
                 if (userSettings.footerText) userMessage += `${userSettings.footerText}`;
+
+                console.log('User Message:', userMessage);
+
+                if (userSettings.headerText || userSettings.channelLink || userSettings.footerText) {
+                    modifiedMessage = userMessage;
+                }
+
+            }
+            if (userSettings ? userSettings.enableText === 'yes' : false) {
+                let userMessage = messageText;
+
+                if (userSettings.headerText) userMessage = `${userSettings.headerText}\n\n${userMessage}`;
+
+                for (let i = 0; i < videoIdMatches.length; i++) {
+                    const videoId = videoIdMatches[i];
+                    const videoLinks = `${videoId}`;
+                    userMessage = `${userMessage.replace(videoId, videoLinks)}\n`;
+                }
+
+                // if (userSettings.channelLink) userMessage += `${userSettings.channelLink}\n\n`;
+                userMessage = userMessage.replace(/https?:\/\/t\.me\/\+_[a-zA-Z0-9]+/g, userSettings.channelLink ? userSettings.channelLink : '');
+                if (userSettings.footerText) userMessage += `\n${userSettings.footerText}`;
 
                 console.log('User Message:', userMessage); // Log the constructed user message
 
@@ -481,6 +498,8 @@ async function handleVideoLinks(ctx, messageText = '') {
         convertedLinksMap.get(ctx.from.id).push(...videoIdMatches);
     }
 }
+
+
 
 
 
