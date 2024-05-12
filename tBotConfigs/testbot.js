@@ -1,232 +1,548 @@
-const { Telegraf } = require('telegraf');
-const { MongoClient } = require('mongodb');
-const dotenv = require('dotenv');
-const os = require('os');
-const fs = require('fs');
-const request = require('request');
-const { randomBytes } = require('crypto');
+const { Telegraf, Scenes, session } = require('telegraf');
+const MongoClient = require('mongodb').MongoClient;
+// const secrets = require('secrets');
 
-dotenv.config();
 
-const MONGO_URI = process.env.mongoDB_uri;
-const client = new MongoClient(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-let db, videoCollection, userCollection, conversationState = {};
+// Replace 'YOUR_BOT_TOKEN' with your actual Telegram Bot API token
+const token = '6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE';
+const bot = new Telegraf(token);
+const stage = new Scenes.Stage();
 
-async function main() {
-    await client.connect();
-    db = client.db("nutCracker");
-    videoCollection = db.collection("videosRecord");
-    userCollection = db.collection("userRecord");
+// Register the stage with the bot
+bot.use(session());
+bot.use(stage.middleware());
+// MongoDB Connection URL
+const mongoURI = 'mongodb+srv://kamleshSoni:TLbtEzobixLJc3wi@nutcracker.hrrsybj.mongodb.net/?retryWrites=true&w=majority&appName=nutCracker';
 
-    const botToken = process.env.bot1Token;
+const client = new MongoClient(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-    const bot = new Telegraf(botToken);
+const db = client.db('nutCracker');
+const collection = db.collection('linkConvertor');
+const userSettings = db.collection('linkConvertor');
+const videosRecordCollection = db.collection('videosRecord');
 
-    bot.start((ctx) => startCommand(ctx));
 
-    bot.command('getmyuserid', (ctx) => getUserId(ctx));
-
-    bot.command('myaccountsinfo', (ctx) => getAccountInfo(ctx));
-
-    bot.command('availablebots', (ctx) => availableBots(ctx));
-
-    bot.command('uploadfromdevice', (ctx) => uploadFromDevice(ctx));
-
-    bot.command('titlerename', (ctx) => titleRename(ctx));
-
-    bot.on('message', async (ctx) => {
-        try {
-            if (ctx.message.video) {
-                await handleVideo(ctx);
-            } else if (ctx.message.photo) {
-                await handleImage(ctx);
+bot.start((ctx) => {
+    const user_id = ctx.message.from.id;
+    const user_name = ctx.message.from.username || " ";
+    getUserRecord(user_id)
+        .then((user_record) => {
+            const first = ctx.message.from.first_name;
+            if (user_record) {
+                ctx.reply(`Welcome back!...\n\n<b>Share any link of our platform, I will create a new unique link for you.</b>\n\n<b>Note: There are several commands available in menu option to reduce your workload.</b>\n\n<b>Offical Channel - https://t.me/Nutcracker_live</b>\n\n<b>Discussion group - https://t.me/NutCracker_Discussion</b>`, { parse_mode: "HTML" });
             } else {
-                await handleMessage(ctx);
+                console.log("new");
+                insertUserRecord(user_id, user_name)
+                    .then(() => {
+                        ctx.reply(`Welcome! ${first}\nWe're glad you're here.\n\n<b>Share any link of our platform, I will create a new unique link for you.</b>\n\n<b>Note: There are several commands available in menu option to reduce your workload.</b>\n\n<b>Offical Channel - https://t.me/Nutcracker_live</b>\n\n<b>Discussion group - https://t.me/NutCracker_Discussion</b>`, { parse_mode: "HTML" });
+                    })
+                    .catch((err) => console.error(err));
             }
-        } catch (error) {
-            console.error(error);
-            await ctx.reply('An error occurred while processing your request.');
-        }
-    });
+        })
+        .catch((err) => console.error(err));
+});
 
-    bot.launch();
-}
 
-async function handleVideo(ctx) {
-    const userId = ctx.message.from.id;
-    const file_id = ctx.message.video.file_id;
-    const videoUrl = await ctx.telegram.getFileLink(file_id);
-    const messageInit = await ctx.reply("Processing request...");
-    
-    try {
-        // Download and store the video
-        const videoPath = await downloadAndStoreVideo(videoUrl);
-        const videoFileExtension = videoUrl.slice(videoUrl.lastIndexOf('.'));
-        const newFilename = generateRandomFilename() + videoFileExtension;
-        const newVideoPath = `../public/uploads/${newFilename}`;
-        fs.renameSync(videoPath, newVideoPath);
-
-        const videoFile = fs.createReadStream(newVideoPath);
-
-        // Generate unique video ID
-        const videoId = generateRandomHex(24);
-
-        // Insert video information into database
-        const video_info = {
-            "videoName": newFilename,
-            "fileLocalPath": `/public/uploads/${videoId}`,
-            "file_size": ctx.message.video.file_size,
-            "duration": ctx.message.video.duration,
-            "mime_type": ctx.message.video.mime_type,
-            "fileUniqueId": videoId,
-            "relatedUser": userId,
-            "userName": ctx.message.from.username || "",
-            "viewCount": 0,
-        };
-        await videoCollection.insertOne(video_info);
-
-        const videoUrl = `http://nutcracker.live/video/${videoId}`;
-        await ctx.reply(`Your video has been uploaded successfully...\n\n😊😊Now you can start using the link:\n\n${videoUrl}`);
-        await messageInit.delete();
-    } catch (error) {
-        console.error(error);
-        await messageInit.edit("An error occurred while processing your request. Please try again later.");
-    }
-}
-
-async function handleImage(ctx) {
-    // Implementation for handling images
-}
-
-async function titleRename(ctx) {
-    // Implementation for renaming titles
-}
-
-async function startCommand(ctx) {
-    const userId = ctx.message.from.id;
-    const userName = ctx.message.from.username || "";
-    const user_record = await get_user_record(userId);
-    const first = ctx.message.from.first_name;
-
-    if (user_record) {
-        await ctx.reply("Welcome back!!\n\nUpload, Share and Earn.");
-    } else {
-        console.log("new");
-        await insert_user_record(userId, userName);
-        await ctx.reply(`Welcome! ${first}\n\nWe're glad you're here.\nTo start using our platform\nYou can start sharing videos directly\n\nNote: If anything went wrong don't worry about it as we are on the testing phase.`);
-    }
-}
-
-async function getUserId(ctx) {
-    const userId = ctx.message.from.id;
-    await ctx.reply(`Here is your 👤 user id:\n\n${userId}`);
-}
-
-async function getAccountInfo(ctx) {
-    await ctx.reply("We are under construction, please check back later.... 😊");
-}
-
-async function availableBots(ctx) {
+bot.command("availablebots", async (ctx) => {
     const bot_list = [
-        (
+        [
             "Nutcracker video convert bot.",
-            "https://t.me/nutcracker_video_convert_bot"
-        ),
-        (
+            "https://t.me/nutcracker_video_convert_bot",
+        ],
+        [
             "NutCracker Link Convert Bot",
-            "https://t.me/NutCracker_Link_Convert_Bot"
-        ),
-        (
+            "https://t.me/NutCracker_Link_Convert_Bot",
+        ],
+        [
             "NutCracker Finance Bot",
-            "https://t.me/NutCracker_Finance_Bot"
-        ),
+            "https://t.me/NutCracker_Finance_Bot",
+        ],
+        [
+            "NutCracker - Terabox Links to video",
+            "https://t.me/Terabox_Link_to_Nutcracker_bot",
+        ],
     ];
 
-    let bot_list_message = "Available Bots: 👇👇\n";
-    bot_list.forEach(bot => {
-        bot_list_message += `\n${bot[0]}: ${bot[1]}`;
-    });
+    const keyboard = bot_list.map((bot) => [{
+        text: bot[0],
+        url: bot[1]
+    }]);
 
-    await ctx.reply(bot_list_message);
-}
-
-async function uploadFromDevice(ctx) {
-    await ctx.reply("Start Uploading Your Video ...😉");
-}
-
-async function handleMessage(ctx) {
-    const userId = ctx.message.from.id;
-    const sender_username = ctx.message.from.username || "";
-    const text = ctx.message.text;
-    const video_links = text.match(/(https?:\/\/\S+)/g);
-
-    if (video_links) {
-        const messageInit = await ctx.reply("Processing request... 👍");
-        for (let video_link of video_links) {
-            const unique_link = await processVideoLink(video_link, userId, sender_username);
-            await ctx.reply(`Your video has been uploaded successfully...\n\n😊😊Now you can start using the link:\n\n${unique_link}`);
+    await ctx.reply("Available Bots: 👇👇", {
+        reply_markup: {
+            inline_keyboard: keyboard
         }
-        await messageInit.delete();
-    } else {
-        await ctx.reply("\nPlease Choose From Menu Options... \n\n👇👇");
-    }
-}
-
-
-async function downloadAndStoreVideo(videoUrl, folder = "../public/uploads/") {
-    const filename = generateRandomFilename() + ".mp4";
-    const filepath = folder + filename;
-
-    const file = fs.createWriteStream(filepath);
-    await new Promise((resolve, reject) => {
-        request.get(videoUrl).pipe(file)
-        .on('error', error => {
-            reject(error);
-        })
-        .on('finish', () => {
-            resolve();
-        });
     });
+});
 
-    return filepath;
-}
+bot.command('help', (ctx) => {
+    ctx.reply(`You can connect on following link for any kind of help.\n\nSupport Team - https://t.me/NetCracker_live`);
+});
 
-async function processVideoLink(videoLink, userId, senderUsername) {
-    const videoPath = await downloadAndStoreVideo(videoLink);
-    const videoId = generateRandomHex(24);
 
-    const videoInfo = {
-        "videoName": os.path.basename(videoPath),
-        "fileLocalPath": `/public/uploads/${videoId}`,
-        "file_size": fs.statSync(videoPath).size,
-        "duration": 0,  // Update with actual duration if available
-        "mime_type": "video/mp4",  // Update with actual MIME type if available
-        "fileUniqueId": videoId,
-        "relatedUser": userId,
-        "userName": senderUsername || "",
-    };
-    await videoCollection.insertOne(videoInfo);
-    const videoUrl = `http://nutcracker.live/video/${videoId}`;
-    return videoUrl;
-}
+bot.command('getmyid', (ctx) => {
+    const user_id = ctx.message.from.id;
+    ctx.reply(`Here is your 👤 user id:\n\n ${user_id}`);
+});
 
-function generateRandomHex(length) {
-    return randomBytes(length).toString('hex');
-}
 
-function generateRandomFilename(length = 10) {
-    const letters = 'abcdefghijklmnopqrstuvwxyz';
-    let filename = '';
-    for (let i = 0; i < length; i++) {
-        filename += letters.charAt(Math.floor(Math.random() * letters.length));
+
+// /channel command
+bot.command('channel', (ctx) => {
+    ctx.scene.enter('addChannelScene');
+});
+const addChannelScene = new Scenes.BaseScene('addChannelScene');
+addChannelScene.enter((ctx) => {
+    ctx.reply('Please provide the channel link.');
+});
+addChannelScene.on('text', async (ctx) => {
+    const channelLink = ctx.message.text;
+
+    try {
+        await collection.updateOne(
+            { chatId: ctx.chat.id }, // Filter
+            { $set: { channelLink } }, // Update
+            { upsert: true } // Options: Insert if document does not exist
+        );
+        ctx.reply('Channel link saved successfully!');
+    } catch (err) {
+        console.error('Error saving channel link to database:', err);
+        ctx.reply('An error occurred while saving the channel link. Please try again later.');
     }
-    return filename;
-}
-async function get_user_record(user_id) {
-    // Implementation to retrieve user record from the database
-    const userInformation = await userCollection.findOne({"userId": user_id});
-    console.log(userInformation);
-    return userInformation;
+    // Return to stop further processing of text messages
+    ctx.scene.leave();
+});
+stage.register(addChannelScene);
+
+// bot.command('channel', (ctx) => {
+//     ctx.reply('Please provide the channel link.');
+//     bot.on('text', async (ctx) => {
+//         const channelLink = ctx.message.text;
+
+//         try {
+//             await collection.updateOne(
+//                 { chatId: ctx.chat.id }, // Filter
+//                 { $set: { channelLink } }, // Update
+//                 { upsert: true } // Options: Insert if document does not exist
+//             );
+//             ctx.reply('Channel link saved successfully!');
+//         } catch (err) {
+//             console.error('Error saving channel link to database:', err);
+//             ctx.reply('An error occurred while saving the channel link. Please try again later.');
+//         }
+//         // Return to stop further processing of text messages
+//         ctx.scene.leave();
+
+//     });
+// });
+
+bot.command('addfooter', (ctx) => {
+    ctx.scene.enter('addFooterScene');
+});
+const addFooterScene = new Scenes.BaseScene('addFooterScene');
+
+addFooterScene.enter((ctx) => {
+    ctx.reply('Please provide the footer text.');
+});
+
+addFooterScene.on('text', async (ctx) => {
+    const footerText = ctx.message.text;
+
+    try {
+        await collection.updateOne(
+            { chatId: ctx.chat.id },
+            { $set: { footerText } },
+            { upsert: true }
+        );
+        ctx.reply('Footer text saved successfully!');
+    } catch (err) {
+        console.error('Error saving footer text to database:', err);
+        ctx.reply('An error occurred while saving the footer text. Please try again later.');
+    }
+    // Leave the current scene to stop further processing of text messages
+    ctx.scene.leave();
+});
+stage.register(addFooterScene);
+
+// /addheader command
+bot.command('addheader', (ctx) => {
+    ctx.scene.enter('addHeaderScene');
+});
+
+// Define the scene
+const addHeaderScene = new Scenes.BaseScene('addHeaderScene');
+
+addHeaderScene.enter((ctx) => {
+    ctx.reply('Please provide the header text.');
+});
+
+addHeaderScene.on('text', async (ctx) => {
+    const headerText = ctx.message.text;
+
+    try {
+        await collection.updateOne(
+            { chatId: ctx.chat.id },
+            { $set: { headerText } },
+            { upsert: true }
+        );
+        ctx.reply('Header text saved successfully!');
+    } catch (err) {
+        console.error('Error saving header text to database:', err);
+        ctx.reply('An error occurred while saving the header text. Please try again later.');
+    }
+    // Leave the current scene to stop further processing of text messages
+    ctx.scene.leave();
+});
+
+// Register the scene with the stage
+stage.register(addHeaderScene);
+// /removechannel command
+bot.command('removechannel', async (ctx) => {
+    try {
+        const result = await collection.updateOne(
+            { chatId: ctx.chat.id },
+            { $unset: { channelLink: '' } }
+        );
+        if (result.deletedCount > 0) {
+            ctx.reply('Channel link removed successfully!');
+        } else {
+            ctx.reply('Channel link removed successfully!');
+        }
+    } catch (err) {
+        console.error('Error removing channel link from database:', err);
+        ctx.reply('An error occurred while removing the channel link. Please try again later.');
+    }
+});
+
+// /removefooter command
+bot.command('removefooter', async (ctx) => {
+    try {
+        const result = await collection.updateOne(
+            { chatId: ctx.chat.id },
+            { $unset: { footerText: '' } }
+        );
+        if (result.modifiedCount > 0) {
+            ctx.reply('Footer text removed successfully!');
+        } else {
+            ctx.reply('No footer text saved.');
+        }
+    } catch (err) {
+        console.error('Error removing footer text from database:', err);
+        ctx.reply('An error occurred while removing the footer text. Please try again later.');
+    }
+});
+
+// /removeheader command
+bot.command('removeheader', async (ctx) => {
+    try {
+        const result = await collection.updateOne(
+            { chatId: ctx.chat.id },
+            { $unset: { headerText: '' } }
+        );
+        if (result.modifiedCount > 0) {
+            ctx.reply('Header text removed successfully!');
+        } else {
+            ctx.reply('No header text saved.');
+        }
+    } catch (err) {
+        console.error('Error removing header text from database:', err);
+        ctx.reply('An error occurred while removing the header text. Please try again later.');
+    }
+});
+// /enabletext command
+bot.command('enabletext', async (ctx) => {
+    try {
+        const result = await collection.updateOne(
+            { chatId: ctx.chat.id },
+            { $set: { enableText: 'yes' } },
+            { upsert: true }
+        );
+        if (result.modifiedCount > 0) {
+            ctx.reply('Text enabled successfully!');
+        } else {
+            ctx.reply('Text already enabled.');
+        }
+    } catch (err) {
+        console.error('Error enabling text in database:', err);
+        ctx.reply('An error occurred while enabling text. Please try again later.');
+    }
+});
+
+// /disabletext command
+bot.command('disabletext', async (ctx) => {
+    try {
+        const result = await collection.updateOne(
+            { chatId: ctx.chat.id },
+            { $set: { enableText: 'no' } },
+            { upsert: true }
+        );
+        if (result.modifiedCount > 0) {
+            ctx.reply('Text disabled successfully!');
+        } else {
+            ctx.reply('Text already disabled.');
+        }
+    } catch (err) {
+        console.error('Error disabling text in database:', err);
+        ctx.reply('An error occurred while disabling text. Please try again later.');
+    }
+});
+// /addpicture command
+bot.command('addpicture', async (ctx) => {
+    try {
+        const result = await collection.updateOne(
+            { chatId: ctx.chat.id },
+            { $set: { enablePicture: true } },
+            { upsert: true }
+        );
+        if (result.modifiedCount > 0) {
+            ctx.reply('Picture enabled successfully!');
+        } else {
+            ctx.reply('Picture already enabled.');
+        }
+    } catch (err) {
+        console.error('Error enabling link preview in database:', err);
+        ctx.reply('An error occurred while enabling picture. Please try again later.');
+    }
+});
+
+// /disablepicture command
+bot.command('disablepicture', async (ctx) => {
+    try {
+        const result = await collection.updateOne(
+            { chatId: ctx.chat.id },
+            { $set: { enablePicture: false } },
+            { upsert: true }
+        );
+        if (result.modifiedCount > 0) {
+            ctx.reply('Picture disabled successfully!');
+        } else {
+            ctx.reply('Picture already disabled.');
+        }
+    } catch (err) {
+        console.error('Error disabling picture in database:', err);
+        ctx.reply('An error occurred while disabling picture. Please try again later.');
+    }
+});
+
+const convertedLinksMap = new Map();
+
+bot.on('message', async (ctx) => {
+    const messageText = ctx.message.text || '';
+    const photo = ctx.message.photo || [];
+    const caption = ctx.message.caption || ''; // Check for caption when a photo is present
+
+    console.log("Message Text:", messageText);
+    // console.log("Photo:");
+
+    // If the message contains a photo
+    if (photo.length > 0) {
+        console.log("Handling message with a photo...");
+        // Handle the photo (if needed)
+
+        // If there is also message text or caption, handle it
+        if (messageText !== '' || caption !== '') {
+            console.log("Handling message text or caption as well...");
+            // Use caption if available, otherwise fallback to message text
+            const textToHandle = caption !== '' ? caption : messageText;
+            // Call the function to handle video links with the text
+            await handleVideoLinks(ctx, textToHandle);
+        }
+    }
+    // If the message contains only text
+    else if (messageText !== '') {
+        console.log("Handling message with only text...");
+        // Call the function to handle video links with the text
+        await handleVideoLinks(ctx, messageText, photo);
+    }
+    else {
+        console.log("Empty message.");
+    }
+});
+
+
+
+
+async function handleVideoLinks(ctx, messageText = '') {
+    console.log('Message Text:', messageText); // Log the message text
+
+    // Regular expression pattern to match the video ID
+    const videoIdPattern = /[0-9a-f]{24}/gi;
+    const videoIdMatches = messageText.match(videoIdPattern);
+
+    console.log('Video ID Matches:', videoIdMatches);
+
+    if (videoIdMatches && videoIdMatches.length > 0) {
+        const userSettings = await collection.findOne({ chatId: ctx.from.id });
+        console.log('User Settings:', userSettings);
+
+        let modifiedMessage = messageText;
+        modifiedMessage = modifiedMessage.replace(/https?:\/\/t\.me\/\+_[a-zA-Z0-9]+/g, '');
+
+
+
+        for (const videoId of videoIdMatches) {
+            const videoLinks = `https://nutcracker.live/plays/${videoId}`;
+            console.log('Video Links:', videoLinks);
+
+            if (userSettings && userSettings.enableText === 'no') {
+                let userMessage = '';
+
+                if (userSettings.headerText) userMessage += `${userSettings.headerText}\n\n`;
+
+                for (const videoId of videoIdMatches) {
+                    let listMessage = '';
+                    for (let i = 0; i < videoIdMatches.length; i++) {
+                        const videoId = videoIdMatches[i];
+                        const videoLinks = `https://nutcracker.live/plays/${videoId}`;
+                        listMessage += `video${i + 1} \n${videoLinks}\n\n`;
+                    }
+                    userMessage += `${listMessage}`;
+                }
+
+                if (userSettings.channelLink) userMessage += `${userSettings.channelLink}\n\n`;
+                if (userSettings.footerText) userMessage += `${userSettings.footerText}`;
+
+                console.log('User Message:', userMessage); // Log the constructed user message
+
+                if (userSettings.headerText || userSettings.channelLink || userSettings.footerText) {
+                    modifiedMessage = userMessage;
+                }
+
+            }
+            if (userSettings ? userSettings.enableText === 'yes' : false) {
+                let userMessage = messageText;
+
+                if (userSettings.headerText) userMessage = `${userSettings.headerText}\n\n${userMessage}`;
+
+                for (let i = 0; i < videoIdMatches.length; i++) {
+                    const videoId = videoIdMatches[i];
+                    const videoLinks = `${videoId}`;
+                    userMessage = `${userMessage.replace(videoId, videoLinks)}\n`;
+                }
+
+                if (userSettings.channelLink) userMessage += `${userSettings.channelLink}\n\n`;
+                if (userSettings.footerText) userMessage += `${userSettings.footerText}`;
+
+                console.log('User Message:', userMessage); // Log the constructed user message
+
+                if (userSettings.headerText || userSettings.channelLink || userSettings.footerText) {
+                    modifiedMessage = userMessage;
+                }
+            }
+        }
+
+        console.log('Modified Message:', modifiedMessage); // Log the modified message
+
+        for (const videoId of videoIdMatches) {
+            const convertRecord = await videosRecordCollection.findOne({ relatedUser: ctx.from.id, convertedFrom: videoId });
+
+            if (convertRecord) {
+                const originalVideoId = convertRecord.uniqueLink;
+                console.log('Original Video ID:', originalVideoId);
+
+                // Generate a new video link using the original video ID
+                modifiedMessage = modifiedMessage.replace(videoId, originalVideoId);
+            } else {
+                const videoRecord = await videosRecordCollection.findOne({ uniqueLink: videoId });
+
+                console.log('Video Record:', videoRecord); // Log the video record
+
+                if (videoRecord) {
+                    // Generate a new video ID for the user
+                    const newVideoId = generateRandomHex(24);
+
+                    console.log('New Video ID:', newVideoId); // Log the new video ID
+
+                    const newVideoRecord = {
+                        ...videoRecord,
+                        uniqueLink: newVideoId,
+                        relatedUser: ctx.from.id,
+                        convertedFrom: videoId
+                    };
+
+                    delete newVideoRecord._id;
+
+                    console.log('New Video Record:', newVideoRecord); // Log the new video record
+
+                    // Store the new video record in the videosRecord collection
+                    await videosRecordCollection.insertOne(newVideoRecord);
+
+                    // Generate a new video link using the updated video ID
+                    modifiedMessage = modifiedMessage.replace(videoId, newVideoId);
+                } else {
+                    ctx.reply('Video not found.');
+                }
+            }
+        }
+
+        // Reply to the user with the modified message and keep the photo if present
+        if (ctx.message.photo && ctx.message.photo.length > 0) {
+            // If there is a photo, send the modified message with the photo
+            await ctx.telegram.sendPhoto(ctx.chat.id, ctx.message.photo[0].file_id, { caption: modifiedMessage });
+        } else {
+            // If there is no photo, send only the modified message
+            await ctx.reply(modifiedMessage, { disable_web_page_preview: true });
+        }
+
+        // Reply to the user with the modified message and keep the photo if present
+        // ctx.reply(modifiedMessage, { caption: ctx.message.caption, photo: ctx.message.photo });
+
+        // await storeConvertedLinks(ctx.from.id, videoIdMatches.length);
+
+        // Update the convertedLinksMap for this user
+        if (!convertedLinksMap.has(ctx.from.id)) {
+            convertedLinksMap.set(ctx.from.id, []);
+        }
+        convertedLinksMap.get(ctx.from.id).push(...videoIdMatches);
+    }
 }
 
-main();
+
+
+
+
+
+// Helper function to generate a random hexadecimal string
+function generateRandomHex(length) {
+    const characters = "abcdef0123456789";
+    let randomHex = "";
+    for (let i = 0; i < length; i++) {
+        randomHex += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return randomHex;
+}
+
+
+async function getUserRecord(user_id) {
+    try {
+        await client.connect();
+        const db = client.db("nutCracker");
+        const userCollection = db.collection("userRecord");
+        const user_information = await userCollection.findOne({ userId: user_id });
+        return user_information;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+async function insertUserRecord(user_id, user_name) {
+    try {
+        const db = client.db("nutCracker");
+        const userCollection = db.collection("userRecord");
+        const result = await userCollection.insertOne({
+            userId: user_id,
+            userName: user_name,
+            upiNumber: 0,
+            uploadedVideos: 0,
+            createdAt: moment().toDate()
+        });
+        console.log("User record inserted successfully.");
+        return result;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+// Start polling
+bot.launch().then(() => console.log('Bot started'));

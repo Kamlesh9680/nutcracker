@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview Video</title>
+    <link rel="stylesheet" href="/assets/style.css">
+
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <header class="header">
+            <div class="header-wrapper">
+                <div class="logo"><img src="/assets/images/logo.svg" alt="logo">
+                    <h2>NutCracker</h2>
+                </div>
+                <div class="nav">
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/about">About</a></li>
+                        <li><a href="/upload">Upload</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <main class="plays">
+            <div class="wrapper">
+                <div class="video-container">
+                    <video>
+                        <source src="" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <div class="btncontainer">
+                    <button onclick="redirectToOriginalVideo()">Play Video</button>
+                </div>
+            </div>
+        </main>
+        <footer class="footer">
+            <div class="footer-wrapper">
+                <div class="footer-txt">
+                    <p>© 2024 NutCracker | All rights reserved.</p>
+                </div>
+                <div class="footer-links">
+                    <a href="/terms">Terms and Conditions</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Get the unique link from the URL
+        const pathArray = window.location.pathname.split('/');
+        const uniqueLink = pathArray[pathArray.length - 1];
+
+        // Set the video source based on the unique link
+        const videoElement = document.querySelector('video');
+        videoElement.src = `/play/${uniqueLink}`;
+
+        // Function to redirect to the original video play page
+        function redirectToOriginalVideo() {
+            window.location.href = `/play/${uniqueLink}`;
+        }
+    </script>
+</body>
+
+</html>
