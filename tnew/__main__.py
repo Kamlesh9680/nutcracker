@@ -7,7 +7,7 @@ import logging
 import importlib
 from pathlib import Path
 from pyrogram import idle
-from .bot import StreamBot
+# from .bot import 
 from .vars import Var
 from aiohttp import web
 from .server import web_server
@@ -15,7 +15,6 @@ from .utils.keepalive import ping_server
 from Adarsh.bot.clients import initialize_clients
 
 
-sys.path.append(str(Path(__file__).resolve().parent))
 
 logging.basicConfig(
     level=logging.INFO,
