@@ -26,6 +26,10 @@
             display: inline;
         }
 
+        #hidden-content{
+            display: none;
+        }
+
         /* Smartphone Portrait and Landscape */
         @media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
             .mobileHide {
@@ -38,7 +42,7 @@
 </head>
 
 <body>
-    <div class="page-wrapper playp">
+    <div class="page-wrapper playp" id="hidden-content">
         <header class="header">
             <div class="header-wrapper">
                 <div class="logo"><img src="/assets/images/logo.svg" alt="logo">
@@ -239,12 +243,14 @@
     <script src="//imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
     <script>
         var modal = document.getElementById('myadModal');
+        var mainContent = document.getElementById('hidden-content');
 
         // Get the button that opens the modal
         var btn = document.getElementById("popupButton");
 
         btn.onclick = function () {
             modal.style.display = "none";
+            mainContent.style.display = "block";
         }
 
         // Prevent users from accessing the page until they click the button
