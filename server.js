@@ -244,8 +244,8 @@ async function updateUserTotalViews(userId) {
     const eviews = await userCollection.findOne({ userId });
     // console.log("eviews:", eviews);
 
-    // Calculate earnings based on views (0.6$ per 1000 views)
-    const earningsPerView = 0.6 / 1000;
+    // Calculate earnings based on views (1.6$ per 1000 views)
+    const earningsPerView = 1.6 / 1000;
     const totalEarnings = earningsPerView * eviews.totalViews;
     // Update totalEarnings for the user
     const updateResult = await userCollection.updateOne(
