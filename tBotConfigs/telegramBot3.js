@@ -31,12 +31,12 @@ bot.command("start", async (ctx) => {
     const user_record = await get_user_record(user_id);
     const first = ctx.message.from.first_name;
     if (user_record) {
-        ctx.reply(`Welcome back! ....\n\nThis is NutCracker Finance bot.\n\n<b>Info:</b>\n1. <b>Earnings are calculated on the basis on $0.6/1000 views.</b>\n2. <b>You can add/edit bank details (fill carefully) for withdrawal using /editbankdetails command.</b>\n3. <b>Your earnings will be reflected in your account in 2 days.</b>\n\n<b>Offical Channel - https://t.me/Nutcracker_live</b>\n\n<b>Discussion group - https://t.me/NutCracker_Discussion</b>`, { parse_mode: "HTML" });
+        ctx.reply(`Welcome back! ....\n\nThis is NutCracker Finance bot.\n\n<b>Info:</b>\n1. <b>Earnings are calculated on the basis on $1.6/1000 views.</b>\n2. <b>You can add/edit bank details (fill carefully) for withdrawal using /editbankdetails command.</b>\n3. <b>Your earnings will be reflected in your account in 2 days.</b>\n\n<b>Offical Channel - https://t.me/Nutcracker_live</b>\n\n<b>Discussion group - https://t.me/NutCracker_Discussion</b>`, { parse_mode: "HTML" });
     } else {
         console.log("new");
         await insert_user_record(user_id, user_name);
         ctx.reply(
-            `Welcome! ${first}\n\nWe're glad you're here.\nThis is NutCracker Finance bot.\n\n<b>Info:</b>\n1. <b>Earnings are calculated on the basis on $0.6/1000 views.</b>\n2. <b>You can add/edit bank details (fill carefully) for withdrawal using /editbankdetails command.</b>\n3. <b>Your earnings will be reflected in your account in 2 days.</b>\n\n<b>Offical Channel - https://t.me/Nutcracker_live</b>\n\n<b>Discussion group - https://t.me/NutCracker_Discussion</b>`, { parse_mode: "HTML" }
+            `Welcome! ${first}\n\nWe're glad you're here.\nThis is NutCracker Finance bot.\n\n<b>Info:</b>\n1. <b>Earnings are calculated on the basis on $1.6/1000 views.</b>\n2. <b>You can add/edit bank details (fill carefully) for withdrawal using /editbankdetails command.</b>\n3. <b>Your earnings will be reflected in your account in 2 days.</b>\n\n<b>Offical Channel - https://t.me/Nutcracker_live</b>\n\n<b>Discussion group - https://t.me/NutCracker_Discussion</b>`, { parse_mode: "HTML" }
         );
     }
 });
