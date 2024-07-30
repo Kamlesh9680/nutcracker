@@ -4,7 +4,7 @@ async function main() {
   const { sendFile } = require("./utils");
   const express = require("express");
 
-  const bot = new Telegraf('6419718020:AAHrsd2wps0Uh-1l51W9KFYJmmyULUilMfE');
+  const bot = new Telegraf('7109135481:AAGn-YK1pE7GwhssgBU3eHZVBufAn5fT5y4');
 
   bot.start(async (ctx) => {
     try {
