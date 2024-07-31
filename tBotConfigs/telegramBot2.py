@@ -73,20 +73,20 @@ async def handle_video(bot, message: Message):
         video_path = await bot.download_media(file_id, file_name="../uploads/")
         video_file_extension = os.path.splitext(video_path)[1]
         
-        # Use the original filename if available, otherwise assign a default filename
+        # Generate a unique filename if the original filename is not available
         if original_filename:
             new_video_path = os.path.join("../uploads/", original_filename)
         else:
-            # Assign a default filename
-            new_video_path = os.path.join("../uploads/", "video.mp4")
+            unique_suffix = datetime.now().strftime("%Y%m%d%H%M%S") + ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+            new_video_path = os.path.join("../uploads/", f"video_{unique_suffix}{video_file_extension}")
         
         os.rename(video_path, new_video_path)
         video_file = open(new_video_path, "rb")
         try:
             videoId = generate_random_hex(24)
             video_info = {
-                "filename": original_filename or "video.mp4",  # Use original filename if available, otherwise use default
-                "fileLocalPath": f"../uploads/{original_filename or 'video.mp4'}",  # Use original filename if available, otherwise use default
+                "filename": original_filename or f"video_{unique_suffix}{video_file_extension}",
+                "fileLocalPath": new_video_path,
                 "file_size": message.video.file_size,
                 "duration": message.video.duration,
                 "mime_type": message.video.mime_type,
@@ -110,7 +110,6 @@ async def handle_video(bot, message: Message):
             f"An error occurred while processing your request. Please try again later."
         )
         return
-
 
 
 # Command handler for /convertsitelink
