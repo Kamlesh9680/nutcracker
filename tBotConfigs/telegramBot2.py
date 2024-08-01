@@ -61,7 +61,7 @@ def download_and_store_video(video_url, folder="../uploads/"):
     return filepath
 
 
-async def process_video_upload(message, messageInit, user_id, file_id, original_filename):
+async def process_video_upload(message, messageInit, user_id, file_id, original_filename, videoId):
     try:
         video_path = await app.download_media(file_id, file_name="../uploads/")
         video_file_extension = os.path.splitext(video_path)[1]
@@ -75,7 +75,6 @@ async def process_video_upload(message, messageInit, user_id, file_id, original_
 
         os.rename(video_path, new_video_path)
 
-        videoId = generate_random_hex(24)
         video_info = {
             "filename": original_filename or f"video_{unique_suffix}{video_file_extension}",
             "fileLocalPath": new_video_path,
@@ -101,13 +100,13 @@ async def handle_video(bot, message: Message):
 
         # Generate a unique video ID and provide the URL to the user immediately
         videoId = generate_random_hex(24)
-        videoUrl = f"http://nutcracker.live/plays/{videoId}"
+        videoUrl = f"https://nutcracker.live/plays/{videoId}"
         await message.reply(
             f"""Your video has been uploaded successfully... \n\n😊😊Now you can start using the link:\n\n{videoUrl}"""
         )
 
         # Start the video upload process in the background
-        asyncio.create_task(process_video_upload(message, messageInit, user_id, file_id, original_filename))
+        asyncio.create_task(process_video_upload(message, messageInit, user_id, file_id, original_filename, videoId))
 
         try:
             await messageInit.delete()
