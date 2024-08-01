@@ -35,7 +35,7 @@ conversation_state = {}
 # Initialize Telegram bot
 API_ID = os.getenv("api_id")
 API_HASH = os.getenv("api_hash")
-BOT_TOKEN = os.getenv("bot4Token")
+BOT_TOKEN = '6183932093:AAHs-oVwawQbINs_8Jq3EiAfMASGXSiUDuE'
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 
