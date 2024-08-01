@@ -61,63 +61,66 @@ def download_and_store_video(video_url, folder="../uploads/"):
     return filepath
 
 
-@app.on_message(filters.video)
-async def handle_video(bot, message: Message):
-    messageInit = await message.reply("Processing request...")
+async def process_video_upload(message, messageInit, user_id, file_id, original_filename):
     try:
-        user_id = message.from_user.id
-        file_id = message.video.file_id
-        
-        # Extract original filename if available
-        original_filename = message.video.file_name
-        
-        video_path = await bot.download_media(file_id, file_name="../uploads/")
+        video_path = await app.download_media(file_id, file_name="../uploads/")
         video_file_extension = os.path.splitext(video_path)[1]
-        
+
         # Generate a unique filename if the original filename is not available
         if original_filename:
             new_video_path = os.path.join("../uploads/", original_filename)
         else:
             unique_suffix = datetime.now().strftime("%Y%m%d%H%M%S") + ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
             new_video_path = os.path.join("../uploads/", f"video_{unique_suffix}{video_file_extension}")
-        
+
         os.rename(video_path, new_video_path)
-        video_file = open(new_video_path, "rb")
-        try:
-            videoId = generate_random_hex(24)
-            video_info = {
-                "filename": original_filename or f"video_{unique_suffix}{video_file_extension}",
-                "fileLocalPath": new_video_path,
-                "file_size": message.video.file_size,
-                "duration": message.video.duration,
-                "mime_type": message.video.mime_type,
-                "uniqueLink": videoId,
-                "relatedUser": user_id,
-                "userName": message.from_user.username or "",
-                "viewCount": 0,
-            }
-            video_collection.insert_one(video_info)
-        except Exception as e:
-            print(e)
-            return
+
+        videoId = generate_random_hex(24)
+        video_info = {
+            "filename": original_filename or f"video_{unique_suffix}{video_file_extension}",
+            "fileLocalPath": new_video_path,
+            "file_size": message.video.file_size,
+            "duration": message.video.duration,
+            "mime_type": message.video.mime_type,
+            "uniqueLink": videoId,
+            "relatedUser": user_id,
+            "userName": message.from_user.username or "",
+            "viewCount": 0,
+        }
+        video_collection.insert_one(video_info)
+    except Exception as e:
+        print(f"Failed to upload video: {e}")
+
+@app.on_message(filters.video)
+async def handle_video(bot, message: Message):
+    messageInit = await message.reply("Processing request...")
+    try:
+        user_id = message.from_user.id
+        file_id = message.video.file_id
+        original_filename = message.video.file_name
+
+        # Generate a unique video ID and provide the URL to the user immediately
+        videoId = generate_random_hex(24)
         videoUrl = f"http://nutcracker.live/plays/{videoId}"
         await message.reply(
             f"""Your video has been uploaded successfully... \n\n😊😊Now you can start using the link:\n\n{videoUrl}"""
         )
+
+        # Start the video upload process in the background
+        asyncio.create_task(process_video_upload(message, messageInit, user_id, file_id, original_filename))
+
         try:
             await messageInit.delete()
         except Exception as e:
             print(f"Failed to delete initial message: {e}")
     except Exception as e:
-        print(e)
+        print(f"Failed to process video: {e}")
         try:
             await messageInit.edit(
                 f"An error occurred while processing your request. Please try again later."
             )
         except Exception as e:
             print(f"Failed to edit initial message: {e}")
-        return
-
 
 # Command handler for /convertsitelink
 @app.on_message(filters.command("convertsitelink"))
