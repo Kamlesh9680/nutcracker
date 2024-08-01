@@ -70,47 +70,54 @@ async def handle_video(bot, message: Message):
         
         # Extract original filename if available
         original_filename = message.video.file_name
-         # Generate the video link before downloading
-        videoId = generate_random_hex(24)
-        videoUrl = f"http://nutcracker.live/plays/{videoId}"
+        
+        video_path = await bot.download_media(file_id, file_name="../uploads/")
+        video_file_extension = os.path.splitext(video_path)[1]
         
         # Generate a unique filename if the original filename is not available
         if original_filename:
             new_video_path = os.path.join("../uploads/", original_filename)
         else:
-            new_video_path = os.path.join("../uploads/", videoId)
+            unique_suffix = datetime.now().strftime("%Y%m%d%H%M%S") + ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+            new_video_path = os.path.join("../uploads/", f"video_{unique_suffix}{video_file_extension}")
         
-        # Generate the video link before downloading
-        # videoId = generate_random_hex(24)
-        # videoUrl = f"http://nutcracker.live/plays/{videoId}"
-        
-        await message.reply(
-            f"Your video is being processed...\n\n😊😊Now you can start using the link:\n\n{videoUrl}"
-        )
-        await messageInit.delete()
-
-        # Asynchronously download and store the video
-        video_path = await bot.download_media(file_id, file_name=new_video_path)
         os.rename(video_path, new_video_path)
-
-        video_info = {
-            "filename": original_filename or f"video_{unique_suffix}{video_file_extension}",
-            "fileLocalPath": new_video_path,
-            "file_size": message.video.file_size,
-            "duration": message.video.duration,
-            "mime_type": message.video.mime_type,
-            "uniqueLink": videoId,
-            "relatedUser": user_id,
-            "userName": message.from_user.username or "",
-            "viewCount": 0,
-        }
-        video_collection.insert_one(video_info)
-
+        video_file = open(new_video_path, "rb")
+        try:
+            videoId = generate_random_hex(24)
+            video_info = {
+                "filename": original_filename or f"video_{unique_suffix}{video_file_extension}",
+                "fileLocalPath": new_video_path,
+                "file_size": message.video.file_size,
+                "duration": message.video.duration,
+                "mime_type": message.video.mime_type,
+                "uniqueLink": videoId,
+                "relatedUser": user_id,
+                "userName": message.from_user.username or "",
+                "viewCount": 0,
+            }
+            video_collection.insert_one(video_info)
+        except Exception as e:
+            print(e)
+            return
+        videoUrl = f"http://nutcracker.live/plays/{videoId}"
+        await message.reply(
+            f"""Your video has been uploaded successfully... \n\n😊😊Now you can start using the link:\n\n{videoUrl}"""
+        )
+        try:
+            await messageInit.delete()
+        except Exception as e:
+            print(f"Failed to delete initial message: {e}")
     except Exception as e:
         print(e)
-        await messageInit.edit(
-            "An error occurred while processing your request. Please try again later."
-        )
+        try:
+            await messageInit.edit(
+                f"An error occurred while processing your request. Please try again later."
+            )
+        except Exception as e:
+            print(f"Failed to edit initial message: {e}")
+        return
+
 
 # Command handler for /convertsitelink
 @app.on_message(filters.command("convertsitelink"))
