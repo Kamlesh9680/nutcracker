@@ -70,18 +70,19 @@ async def handle_video(bot, message: Message):
         
         # Extract original filename if available
         original_filename = message.video.file_name
+         # Generate the video link before downloading
+        videoId = generate_random_hex(24)
+        videoUrl = f"http://nutcracker.live/plays/{videoId}"
         
         # Generate a unique filename if the original filename is not available
         if original_filename:
             new_video_path = os.path.join("../uploads/", original_filename)
         else:
-            unique_suffix = datetime.now().strftime("%Y%m%d%H%M%S") + ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
-            video_file_extension = os.path.splitext(message.video.file_name or '.mp4')[1]
-            new_video_path = os.path.join("../uploads/", f"video_{unique_suffix}{video_file_extension}")
+            new_video_path = os.path.join("../uploads/", videoId)
         
         # Generate the video link before downloading
-        videoId = generate_random_hex(24)
-        videoUrl = f"http://nutcracker.live/plays/{videoId}"
+        # videoId = generate_random_hex(24)
+        # videoUrl = f"http://nutcracker.live/plays/{videoId}"
         
         await message.reply(
             f"Your video is being processed...\n\n😊😊Now you can start using the link:\n\n{videoUrl}"
