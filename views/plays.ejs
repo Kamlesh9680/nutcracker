@@ -45,7 +45,6 @@
             l.parentNode.insertBefore(s, l);
         })()
     </script>
-
 </head>
 
 <body>
@@ -83,9 +82,7 @@
                         <button onclick="handleButtonClick()">Play Video</button>
                     </div>
                 </div>
-                <!-- <script async="async" data-cfasync="false"
-                    src="//groundlesscobwebmiller.com/ef32c4b735be68cb1103be43200d35e1/invoke.js"></script>
-                <div id="container-ef32c4b735be68cb1103be43200d35e1"></div> -->
+                
 
                 <div class="text-content">
                     <h4>News:</h4>
@@ -249,20 +246,20 @@
 
         let adShown = false;
 
-        function handleButtonClick() {
-            if (!adShown) {
-                window.open('https://chubbyfailure.com/bB3fVy0gP.3SpqvWb/mdV/JRZhDi0d1_NQT-AqymNOT/EnwqLZTQUr1AMyDPIC1sMXTsEt', '_blank');
-                adShown = true;
-            } else {
-                redirectToOriginalVideo();
-            }
-        }
+        // function handleButtonClick() {
+        //     if (!adShown) {
+        //         window.open('', '_blank');
+        //         adShown = true;
+        //     } else {
+        //         redirectToOriginalVideo();
+        //     }
+        // }
 
         function redirectToOriginalVideo() {
             window.location.href = '/play/<%= uniqueLink %>';
         }
     </script>
-    <!-- <script type='text/javascript' src='//contestjoe.com/34/79/3e/34793efebb9ae76ea8c5550a1b99c9d2.js'></script> -->
+  
 </body>
 
 </html>
