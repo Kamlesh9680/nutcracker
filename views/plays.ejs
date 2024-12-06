@@ -82,7 +82,7 @@
                         <button onclick="handleButtonClick()">Play Video</button>
                     </div>
                 </div>
-                
+
 
                 <div class="text-content">
                     <h4>News:</h4>
@@ -246,21 +246,22 @@
 
         let adShown = false;
 
-        // function handleButtonClick() {
-        //     if (!adShown) {
-        //         window.open('', '_blank');
-        //         adShown = true;
-        //     } else {
-        //         redirectToOriginalVideo();
-        //     }
-        // }
-        redirectToOriginalVideo();
+        function handleButtonClick() {
+            // if (!adShown) {
+            //     window.open('', '_blank');
+            //     adShown = true;
+            // } else {
+            //     redirectToOriginalVideo();
+            // }
+            redirectToOriginalVideo();
+
+        }
 
         function redirectToOriginalVideo() {
             window.location.href = '/play/<%= uniqueLink %>';
         }
     </script>
-  
+
 </body>
 
 </html>
