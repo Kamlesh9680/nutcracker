@@ -7,6 +7,15 @@
     <title>Upload Video - NutCracker</title>
     <link rel="stylesheet" href="/assets/style.css">
     <link rel="stylesheet" href="/assets/responsive.css">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-M71HRPHJ9T"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-M71HRPHJ9T');
+    </script>
 </head>
 
 <body>
@@ -32,7 +41,8 @@
                     <div class="form-container">
                         <form action="/upload" method="post" enctype="multipart/form-data">
                             <div class="form-row">
-                                <label style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);" for="video">Choose a video:</label>
+                                <label style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);" for="video">Choose a
+                                    video:</label>
                                 <input class="input" type="file" id="video" name="video" accept="video/*" required>
                             </div>
                             <button type="submit" class="submitButton" id="submitButton">Upload</button>
@@ -48,8 +58,9 @@
                                 Easy to use, earning method by doing almost nothing.
                             </li>
                             <li>
-                                You will get a temporary link here, convert it with our <a target="_blank" href="https://t.me/nutcracker_video_convert_bot"
-                                    >Telegram Bot</a> to make it working.
+                                You will get a temporary link here, convert it with our <a target="_blank"
+                                    href="https://t.me/nutcracker_video_convert_bot">Telegram Bot</a> to make it
+                                working.
                             </li>
                         </ul>
                     </div>
