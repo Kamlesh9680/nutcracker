@@ -257,7 +257,11 @@ a {
     align-items: center;
     justify-content: space-between;
 }
-
+.footer-links{
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
 
 .about .acontainer {
     display: flex;

@@ -142,7 +142,7 @@ app.get('/play/:uniqueLink', async (req, res) => {
             return res.status(404).send('Video not found');
         }
 
-        
+
         // Render the HTML page with video filename and additional text content
         res.render('video_page', { filename: video.filename, relatedUser: video.relatedUser, uniqueLink: video.uniqueLink });
     } catch (error) {
@@ -160,10 +160,10 @@ app.get('/update-view/:uniqueLink', async (req, res) => {
         const updatedVideo = await PlaybackVideo.findOneAndUpdate(
             { uniqueLink },
             { $inc: { viewCount: 1 } },
-            { new: true } 
+            { new: true }
         );
         console.log('Updated Video:', updatedVideo);
-        console.log('Related User:', updatedVideo.relatedUser); 
+        console.log('Related User:', updatedVideo.relatedUser);
 
 
         if (!updatedVideo) {
@@ -198,7 +198,7 @@ async function updateTenDaysViews(userId) {
 
         // Calculate total views for the last 10 days
         const tenDaysAgo = new Date(today);
-        tenDaysAgo.setDate(tenDaysAgo.getDate() - 9); 
+        tenDaysAgo.setDate(tenDaysAgo.getDate() - 9);
         const tenDaysViews = user.tenDaysViews || [];
 
         // Remove entries older than 10 days
@@ -272,7 +272,7 @@ async function updateCurrentEarningsWithDelay() {
             // Iterate over each user record
             for (const user of users) {
                 const { userId, totalEarnings } = user;
-                
+
                 // Update currentEarnings for the user
                 await userCollection.updateOne(
                     { userId: userId },
@@ -389,6 +389,18 @@ app.get('/plays/:uniqueLink', (req, res) => {
 
 app.get('/dashboard', (req, res) => {
     res.sendFile(__dirname + '/views/dashboard.html');
+});
+
+app.get('/contact', (req, res) => {
+    res.sendFile(__dirname + '/views/contact.html');
+});
+
+app.get('/blog', (req, res) => {
+    res.sendFile(__dirname + '/views/blog.html');
+});
+
+app.get('/privacy-policy', (req, res) => {
+    res.sendFile(__dirname + '/views/privacy-policy.html');
 });
 
 app.listen(PORT, () => {
