@@ -8,7 +8,7 @@
 
     .header-wrapper {
         flex-direction: column;
-        padding: .2rem 1rem;
+        padding: .2rem .75rem;
         justify-content: center;
         gap: 5px;
     }
@@ -21,8 +21,17 @@
         font-size: 26px;
     }
 
+    .header-wrapper .nav ul {
+        padding-left: 0;
+    }
+
     .header-wrapper .nav ul li {
-        padding: 0 12px;
+        padding: 0 6px;
+    }
+
+    .header-wrapper .nav ul li a {
+        text-decoration: none;
+        font-size: 16px;
     }
 
     .section1 {
@@ -153,35 +162,64 @@
     .upload .linkcontainer {
         margin-bottom: 1rem;
     }
-    .page-wrapper.playsp{
+
+    .page-wrapper.playsp {
         height: 100vh;
     }
-    .footer.playsp{
+
+    .footer.playsp {
         position: fixed;
         bottom: 0;
         left: 0;
     }
-    .playp{
+
+    .playp {
         padding: 1rem;
     }
-    .play{
+
+    .play {
         padding: 1rem 0;
     }
-    .plays{
+
+    .plays {
         padding: 3rem 1rem;
     }
-    .play .video-container, .plays .video-container{
+
+    .play .video-container,
+    .plays .video-container {
         width: 350px !important;
         height: 180px !important;
     }
-    .play .video-container #my-video, .plays .video-container #my-video.video-js{
+
+    .play .video-container #my-video,
+    .plays .video-container #my-video.video-js {
         height: 100% !important;
         width: 100% !important;
     }
+
     .play .text-content p {
         width: 100%;
     }
-    .report-and-user{
+
+    .report-and-user {
         flex-direction: column;
+    }
+
+    .contact-container {
+        flex-direction: column;
+    }
+
+    .contact-details,
+    .contact-form {
+        width: 100%;
+    }
+
+    .contact-card {
+        width: 100%;
+    }
+
+    .contact-page main,
+    .blog-page main {
+        padding: 1.5rem 1rem;
     }
 }
