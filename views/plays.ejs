@@ -234,7 +234,37 @@
             window.location.href = '/play/<%= uniqueLink %>';
         }
     </script>
+<script>
+    // Function to check if an ad blocker is active
+function isAdBlockerActive() {
+  const adTestElement = document.createElement('div');
+  adTestElement.innerHTML = '&nbsp;';
+  adTestElement.className = 'adsbox';
+  document.body.appendChild(adTestElement);
 
+  const isBlocked = adTestElement.offsetHeight === 0;
+  document.body.removeChild(adTestElement);
+
+  return isBlocked;
+}
+
+// Function to prevent page reload if ad blocker is detected
+function preventReloadOnAdBlock() {
+  if (isAdBlockerActive()) {
+    alert("Ad Blocker detected! Please disable your ad blocker to continue.");
+    // Prevent the page from reloading
+    window.onbeforeunload = function () {
+      return "Are you sure you want to leave this page?";
+    };
+  }
+}
+
+// Execute the check on page load
+window.onload = function() {
+  preventReloadOnAdBlock();
+};
+
+</script>
 </body>
 
 </html>

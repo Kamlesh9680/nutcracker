@@ -253,16 +253,16 @@
                 <span id="ad-content">
                     <!-- Ad Script will be inserted here -->
                     <script>
-                        (function(hoei){
-                            var d = document,
-                                s = d.createElement('script'),
-                                l = d.scripts[d.scripts.length - 1];
-                            s.settings = hoei || {};
-                            s.src = "//scented-leather.com/b/X.VDsHdzGyl_0oYrWNdgiyY/Wb5NuzZpX_Ib/feqm/9luHZfU/l/kOPdT/UO1eMiDXIh1RO/DRgqt_NATOUWwmMfjeUb4wOUQC";
-                            s.async = true;
-                            s.referrerPolicy = 'no-referrer-when-downgrade';
-                            l.parentNode.insertBefore(s, l);
-                        })({})
+                            (function (hoei) {
+                                var d = document,
+                                    s = d.createElement('script'),
+                                    l = d.scripts[d.scripts.length - 1];
+                                s.settings = hoei || {};
+                                s.src = "//scented-leather.com/b/X.VDsHdzGyl_0oYrWNdgiyY/Wb5NuzZpX_Ib/feqm/9luHZfU/l/kOPdT/UO1eMiDXIh1RO/DRgqt_NATOUWwmMfjeUb4wOUQC";
+                                s.async = true;
+                                s.referrerPolicy = 'no-referrer-when-downgrade';
+                                l.parentNode.insertBefore(s, l);
+                            })({})
                     </script>
                 </span>
                 <button id="close-banner">Cancel</button>
@@ -272,16 +272,16 @@
     <style>
         /* Style for the banner */
         #banner-ad {
-            display: none; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            background: #f8f8f8; 
-            color: #000; 
-            text-align: center; 
-            padding: 10px; 
-            z-index: 9999; 
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #f8f8f8;
+            color: #000;
+            text-align: center;
+            padding: 10px;
+            z-index: 9999;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
@@ -297,7 +297,7 @@
             background-color: #e53935;
         }
     </style>
-        <script type='text/javascript'
+    <script type='text/javascript'
         src='//pl23055104.profitablecpmrate.com/98/ef/66/98ef66ad81a8169367108092544a0c46.js'></script>
     <script src="https://vjs.zencdn.net/7.14.3/video.js"></script>
 
@@ -440,20 +440,51 @@
             });
         });
     </script>
-        <!-- JavaScript -->
-        <script>
-            // Check if the ad has been shown in the current session
-            if (!sessionStorage.getItem('adShown')) {
-                document.getElementById('banner-ad').style.display = 'block';
-            }
-    
-            // Close the banner ad when the 'Cancel' button is clicked
-            document.getElementById('close-banner').addEventListener('click', function() {
-                document.getElementById('banner-ad').style.display = 'none';
-                // Store in sessionStorage so it doesn't show again in this session
-                sessionStorage.setItem('adShown', 'true');
-            });
-        </script>
+    <!-- JavaScript -->
+    <script>
+        // Check if the ad has been shown in the current session
+        if (!sessionStorage.getItem('adShown')) {
+            document.getElementById('banner-ad').style.display = 'block';
+        }
+
+        // Close the banner ad when the 'Cancel' button is clicked
+        document.getElementById('close-banner').addEventListener('click', function () {
+            document.getElementById('banner-ad').style.display = 'none';
+            // Store in sessionStorage so it doesn't show again in this session
+            sessionStorage.setItem('adShown', 'true');
+        });
+    </script>
+    <script>
+        // Function to check if an ad blocker is active
+function isAdBlockerActive() {
+  const adTestElement = document.createElement('div');
+  adTestElement.innerHTML = '&nbsp;';
+  adTestElement.className = 'adsbox';
+  document.body.appendChild(adTestElement);
+
+  const isBlocked = adTestElement.offsetHeight === 0;
+  document.body.removeChild(adTestElement);
+
+  return isBlocked;
+}
+
+// Function to prevent page reload if ad blocker is detected
+function preventReloadOnAdBlock() {
+  if (isAdBlockerActive()) {
+    alert("Ad Blocker detected! Please disable your ad blocker to continue.");
+    // Prevent the page from reloading
+    window.onbeforeunload = function () {
+      return "Are you sure you want to leave this page?";
+    };
+  }
+}
+
+// Execute the check on page load
+window.onload = function() {
+  preventReloadOnAdBlock();
+};
+
+    </script>
 </body>
 
 </html>
