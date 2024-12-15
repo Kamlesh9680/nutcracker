@@ -455,11 +455,11 @@
         });
     </script>
     <script>
-        function isAdBlockerActive() {
+        // Function to check if an ad blocker is active
+function isAdBlockerActive() {
   const adTestElement = document.createElement('div');
   adTestElement.innerHTML = '&nbsp;';
   adTestElement.className = 'adsbox';
-  adTestElement.style.cssText = 'width: 1px; height: 1px; position: absolute; top: -1000px;'; // Hide it visually
   document.body.appendChild(adTestElement);
 
   const isBlocked = adTestElement.offsetHeight === 0;
@@ -468,23 +468,37 @@
   return isBlocked;
 }
 
+// Function to prevent page reload if ad blocker is detected
 function preventReloadOnAdBlock() {
   if (isAdBlockerActive()) {
-    const warningDiv = document.createElement('div');
-    warningDiv.textContent = "Ad Blocker detected! Please disable your ad blocker to continue.";
-    warningDiv.style.cssText = "position: fixed; top: 0; left: 0; width: 100%; background-color: red; color: white; text-align: center; z-index: 9999; padding: 10px;";
-    document.body.appendChild(warningDiv);
-
-    // Optional: Prevent navigation
+    alert("Ad Blocker detected! Please disable your ad blocker to continue.");
+    // Prevent the page from reloading
     window.onbeforeunload = function () {
       return "Are you sure you want to leave this page?";
     };
   }
 }
 
-window.onload = function () {
-  setTimeout(preventReloadOnAdBlock, 100); // Slight delay to ensure DOM stability
+// Execute the check on page load
+window.onload = function() {
+  preventReloadOnAdBlock();
 };
+
+// Global ad banner (for testing purpose, to trigger ad blocker detection)
+(function() {
+  var adBanner = document.createElement('div');
+  adBanner.style.width = '100px';
+  adBanner.style.height = '100px';
+  adBanner.style.position = 'fixed';
+  adBanner.style.bottom = '10px';
+  adBanner.style.right = '10px';
+  adBanner.style.backgroundColor = 'red';
+  adBanner.style.zIndex = '9999';
+  adBanner.innerHTML = "AD";
+  
+  document.body.appendChild(adBanner);
+})();
+
 
     </script>
 </body>
