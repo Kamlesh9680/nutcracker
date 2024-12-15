@@ -269,14 +269,6 @@
             </div>
         </div>
     </div>
-    <!-- Hidden Ad Test Element -->
-  <div id="adtest" class="adsbox"></div>
-
-  <!-- Ad Blocker Notification -->
-  <div id="adblockNotification" class="adblock-notification">
-    Ad Blocker detected! Please disable your ad blocker to continue using this website.
-  </div>
-
     <style>
         /* Style for the banner */
         #banner-ad {
@@ -304,32 +296,6 @@
         #banner-ad button:hover {
             background-color: #e53935;
         }
-           /* Hidden Ad Test Element */
-    #adtest {
-      width: 1px;
-      height: 1px;
-      position: absolute;
-      top: -1000px;
-      left: -1000px;
-      visibility: hidden;
-    }
-
-    /* Notification Style */
-    .adblock-notification {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background-color: #ff4d4d;
-      color: white;
-      text-align: center;
-      padding: 15px;
-      z-index: 10000;
-      font-size: 18px;
-      font-weight: bold;
-    }
-
     </style>
     <script type='text/javascript'
         src='//pl23055104.profitablecpmrate.com/98/ef/66/98ef66ad81a8169367108092544a0c46.js'></script>
@@ -488,22 +454,7 @@
             sessionStorage.setItem('adShown', 'true');
         });
     </script>
-      <script>
-        // Function to detect if an ad blocker is active
-        function detectAdBlocker() {
-          const adTestElement = document.getElementById('adtest');
-          
-          // Check if the ad element is hidden or blocked
-          if (!adTestElement || adTestElement.offsetParent === null || adTestElement.offsetHeight === 0) {
-            // Show the notification if ad blocker is detected
-            const notification = document.getElementById('adblockNotification');
-            notification.style.display = 'block';
-          }
-        }
     
-        // Run detection on page load
-        window.onload = detectAdBlocker;
-      </script>
 </body>
 
 </html>
