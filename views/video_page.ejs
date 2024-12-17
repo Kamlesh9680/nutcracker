@@ -108,6 +108,56 @@
 </head>
 
 <body>
+    <style>
+        /* Style for the top alert bars */
+        .alert-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #f8f9fa;
+            /* Light background color */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            /* Stack ads vertically */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+        }
+
+        /* Style for the bottom alert bars */
+        .alert-bar-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #f8f9fa;
+            /* Light background color */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            /* Stack ads vertically */
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+        }
+
+        /* Style for individual ads */
+        .ad-container {
+            width: 320px;
+            /* Matches the ad width */
+            height: 50px;
+            /* Matches the ad height */
+            margin: 5px 0;
+            /* Space between ads */
+        }
+
+        main {
+            margin-top: 110px;
+            margin-bottom: 110px;
+        }
+    </style>
     <div class="page-wrapper playp" id="hidden-content">
         <header class="header">
             <div class="header-wrapper">
@@ -125,7 +175,35 @@
                 </div>
             </div>
         </header>
-        
+        <!-- Top Alert bar with two ads -->
+        <div class="alert-bar" id="top-ads">
+            <div class="ad-container" id="top-ad1">
+                <script type="text/javascript">
+                    atOptions = {
+                        'key': '9b38da2595231feaf69b786c1e888eed',
+                        'format': 'iframe',
+                        'height': 50,
+                        'width': 320,
+                        'params': {}
+                    };
+                </script>
+                <script type="text/javascript"
+                    src="//www.highperformanceformat.com/9b38da2595231feaf69b786c1e888eed/invoke.js"></script>
+            </div>
+            <div class="ad-container" id="top-ad2">
+                <script type="text/javascript">
+                    atOptions = {
+                        'key': '9b38da2595231feaf69b786c1e888eed',
+                        'format': 'iframe',
+                        'height': 50,
+                        'width': 320,
+                        'params': {}
+                    };
+                </script>
+                <script type="text/javascript"
+                    src="//www.highperformanceformat.com/9b38da2595231feaf69b786c1e888eed/invoke.js"></script>
+            </div>
+        </div>
         <main class="play">
             <div class="video-wrapper">
                 <div class="video-container">
@@ -231,7 +309,35 @@
 
             </div>
         </main>
-
+        <!-- Bottom Alert bar with two ads -->
+        <div class="alert-bar-bottom" id="bottom-ads">
+            <div class="ad-container" id="bottom-ad1">
+                <script type="text/javascript">
+                    atOptions = {
+                        'key': '9b38da2595231feaf69b786c1e888eed',
+                        'format': 'iframe',
+                        'height': 50,
+                        'width': 320,
+                        'params': {}
+                    };
+                </script>
+                <script type="text/javascript"
+                    src="//www.highperformanceformat.com/9b38da2595231feaf69b786c1e888eed/invoke.js"></script>
+            </div>
+            <div class="ad-container" id="bottom-ad2">
+                <script type="text/javascript">
+                    atOptions = {
+                        'key': '9b38da2595231feaf69b786c1e888eed',
+                        'format': 'iframe',
+                        'height': 50,
+                        'width': 320,
+                        'params': {}
+                    };
+                </script>
+                <script type="text/javascript"
+                    src="//www.highperformanceformat.com/9b38da2595231feaf69b786c1e888eed/invoke.js"></script>
+            </div>
+        </div>
         <footer class="footer" style="position: relative;">
             <div class="footer-wrapper">
                 <div class="footer-txt">
@@ -254,16 +360,16 @@
                 <span id="ad-content">
                     <!-- Ad Script will be inserted here -->
                     <script>
-                            (function (hoei) {
-                                var d = document,
-                                    s = d.createElement('script'),
-                                    l = d.scripts[d.scripts.length - 1];
-                                s.settings = hoei || {};
-                                s.src = "//scented-leather.com/b/X.VDsHdzGyl_0oYrWNdgiyY/Wb5NuzZpX_Ib/feqm/9luHZfU/l/kOPdT/UO1eMiDXIh1RO/DRgqt_NATOUWwmMfjeUb4wOUQC";
-                                s.async = true;
-                                s.referrerPolicy = 'no-referrer-when-downgrade';
-                                l.parentNode.insertBefore(s, l);
-                            })({})
+                        (function (hoei) {
+                            var d = document,
+                                s = d.createElement('script'),
+                                l = d.scripts[d.scripts.length - 1];
+                            s.settings = hoei || {};
+                            s.src = "//scented-leather.com/b/X.VDsHdzGyl_0oYrWNdgiyY/Wb5NuzZpX_Ib/feqm/9luHZfU/l/kOPdT/UO1eMiDXIh1RO/DRgqt_NATOUWwmMfjeUb4wOUQC";
+                            s.async = true;
+                            s.referrerPolicy = 'no-referrer-when-downgrade';
+                            l.parentNode.insertBefore(s, l);
+                        })({})
                     </script>
                 </span>
                 <button id="close-banner">Cancel</button>
@@ -454,6 +560,62 @@
             sessionStorage.setItem('adShown', 'true');
         });
     </script>
-    
+    <!-- JavaScript to reload the ads every 1 minute -->
+    <script>
+        function reloadTopAds() {
+            // Clear and re-add the top ad containers
+            document.getElementById('top-ad1').innerHTML = '';
+            document.getElementById('top-ad2').innerHTML = '';
+
+            // Re-insert the ads for the top bar
+            var ad1 = document.createElement('script');
+            ad1.type = 'text/javascript';
+            ad1.innerHTML = `
+            atOptions = {
+                'key': '9b38da2595231feaf69b786c1e888eed',
+                'format': 'iframe',
+                'height': 50,
+                'width': 320,
+                'params': {}
+            };
+        `;
+            var ad2 = document.createElement('script');
+            ad2.type = 'text/javascript';
+            ad2.src = "//www.highperformanceformat.com/9b38da2595231feaf69b786c1e888eed/invoke.js";
+
+            document.getElementById('top-ad1').appendChild(ad1);
+            document.getElementById('top-ad2').appendChild(ad2);
+        }
+
+        function reloadBottomAds() {
+            // Clear and re-add the bottom ad containers
+            document.getElementById('bottom-ad1').innerHTML = '';
+            document.getElementById('bottom-ad2').innerHTML = '';
+
+            // Re-insert the ads for the bottom bar
+            var ad1 = document.createElement('script');
+            ad1.type = 'text/javascript';
+            ad1.innerHTML = `
+            atOptions = {
+                'key': '9b38da2595231feaf69b786c1e888eed',
+                'format': 'iframe',
+                'height': 50,
+                'width': 320,
+                'params': {}
+            };
+        `;
+            var ad2 = document.createElement('script');
+            ad2.type = 'text/javascript';
+            ad2.src = "//www.highperformanceformat.com/9b38da2595231feaf69b786c1e888eed/invoke.js";
+
+            document.getElementById('bottom-ad1').appendChild(ad1);
+            document.getElementById('bottom-ad2').appendChild(ad2);
+        }
+
+        // Set the interval to reload ads every 1 minute (60000ms)
+        setInterval(reloadTopAds, 60000);
+        setInterval(reloadBottomAds, 60000);
+    </script>
 </body>
+
 </html>
