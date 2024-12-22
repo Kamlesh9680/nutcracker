@@ -403,6 +403,10 @@ app.get('/privacy-policy', (req, res) => {
     res.sendFile(__dirname + '/views/privacy-policy.html');
 });
 
+app.get('/sitemap.xml', (req, res) => {
+    res.sendFile(path.join(__dirname, 'sitemap.xml'));
+});
+
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
